@@ -29,6 +29,7 @@ import {
   Check,
   ChevronRight,
   AlertTriangle,
+  UploadCloud,
 } from "lucide-react";
 
 export default function HotelsTab({
@@ -84,6 +85,7 @@ export default function HotelsTab({
   const [newHotel, setNewHotel] = useState(initialHotelState);
   const [customAmenity, setCustomAmenity] = useState("");
   const [customImageUrl, setCustomImageUrl] = useState("");
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
 
   const popularAmenities = [
     "Free Wi-Fi",
@@ -400,6 +402,59 @@ export default function HotelsTab({
         images: [...newHotel.images, trimmed],
       });
       setCustomImageUrl("");
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    setIsUploadingImg(true);
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const res = await hotelApi.uploadImages(formData);
+      const uploadedData = res?.data || res || [];
+      const newUrls = (Array.isArray(uploadedData) ? uploadedData : [uploadedData])
+        .map((item) => (typeof item === "string" ? item : item.url))
+        .filter(Boolean);
+
+      if (newUrls.length > 0) {
+        setNewHotel((prev) => ({
+          ...prev,
+          images: [...prev.images, ...newUrls],
+        }));
+        showToast(`${newUrls.length} image(s) uploaded successfully!`, "success");
+      } else {
+        throw new Error("No URL returned from server");
+      }
+    } catch (err) {
+      console.warn("Backend upload failed, converting locally:", err);
+      const readPromises = files.map((file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (loadEvt) => resolve(loadEvt.target.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const localBase64Urls = (await Promise.all(readPromises)).filter(Boolean);
+      if (localBase64Urls.length > 0) {
+        setNewHotel((prev) => ({
+          ...prev,
+          images: [...prev.images, ...localBase64Urls],
+        }));
+        showToast(`${localBase64Urls.length} image(s) loaded from PC!`, "success");
+      } else {
+        showToast("Failed to read image files from PC", "error");
+      }
+    } finally {
+      setIsUploadingImg(false);
+      e.target.value = "";
     }
   };
 
@@ -1402,7 +1457,39 @@ export default function HotelsTab({
                   ))}
                 </div>
 
-                <div className="flex gap-2 mt-2">
+                {/* Upload from PC Button */}
+                <div className="mt-2.5">
+                  <label className="cursor-pointer flex items-center justify-center gap-2.5 px-4 py-3 bg-purple-50/80 hover:bg-purple-100 text-[#5B30D9] border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl font-bold text-xs transition active:scale-[0.99] group shadow-sm">
+                    {isUploadingImg ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#5B30D9]" />
+                        <span>Uploading from PC...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4 text-[#5B30D9] group-hover:scale-110 transition-transform" />
+                        <span>📁 Upload Images from PC / Computer</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={isUploadingImg}
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Or via URL divider */}
+                <div className="flex items-center gap-2 my-2.5">
+                  <div className="flex-1 h-[1px] bg-slate-200"></div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400">or add image by URL</span>
+                  <div className="flex-1 h-[1px] bg-slate-200"></div>
+                </div>
+
+                <div className="flex gap-2">
                   <input
                     type="url"
                     placeholder="https://images.unsplash.com/..."

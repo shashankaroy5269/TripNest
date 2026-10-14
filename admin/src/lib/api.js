@@ -176,6 +176,10 @@ export const hotelApi = {
     return axiosAdmin.post("/rooms", data);
   },
   deleteRoom: (id) => axiosAdmin.delete(`/rooms/${id}`),
+  uploadImages: (formData) =>
+    axiosAdmin.post("/hotels/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 };
 
 export const availabilityApi = {

@@ -366,6 +366,32 @@ deleteHotelImage = async (
   );
 };
 
+// ==================================================
+// UPLOAD IMAGES STANDALONE (PC / FILE UPLOAD)
+// ==================================================
+uploadImagesStandalone = async (
+  req,
+  res
+) => {
+  const files = req.files || (req.file ? [req.file] : []);
+  if (!files || files.length === 0) {
+    throw new AppError(
+      "Please select at least one image file",
+      httpStatus.StatusCodes.BAD_REQUEST
+    );
+  }
+
+  const uploadedImages = await hotelService.uploadFilesToCloudinary(files);
+
+  return ApiResponse.success(
+    res,
+    {
+      message: "Images uploaded successfully",
+      data: uploadedImages
+    }
+  );
+};
+
 }
 
 

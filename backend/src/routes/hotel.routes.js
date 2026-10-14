@@ -143,6 +143,32 @@ router.get(
 
 
 // ==================================================
+// UPLOAD IMAGES FROM PC (STANDALONE UPLOAD)
+// ==================================================
+
+router.post(
+  "/upload-image",
+
+  authenticate,
+
+  authorize(
+    ROLES.HOTEL_ADMIN,
+    ROLES.SUPER_ADMIN,
+    ROLES.TRIP_MANAGER
+  ),
+
+  upload.array(
+    "images",
+    10
+  ),
+
+  asyncHandler(
+    hotelController.uploadImagesStandalone
+  )
+);
+
+
+// ==================================================
 // GET SINGLE HOTEL (PUBLIC)
 // ==================================================
 

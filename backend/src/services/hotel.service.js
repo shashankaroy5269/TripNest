@@ -967,10 +967,61 @@ async deleteHotelImage(
     },
 
     updateData
-
   );
 }
 
+  // ==================================================
+  // UPLOAD FILES TO CLOUDINARY (OR BASE64 FALLBACK)
+  // ==================================================
+  async uploadFilesToCloudinary(files) {
+    if (!files || files.length === 0) {
+      throw new AppError("No files provided", httpStatus.StatusCodes.BAD_REQUEST);
+    }
+
+    const uploadedImages = [];
+
+    for (const file of files) {
+      try {
+        if (process.env.CLOUD_NAME && process.env.API_KEY && process.env.API_SECRET) {
+          const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              {
+                folder: "tripnest/hotels"
+              },
+              (error, result) => {
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve(result);
+                }
+              }
+            );
+            stream.end(file.buffer);
+          });
+
+          uploadedImages.push({
+            url: result.secure_url,
+            publicId: result.public_id
+          });
+        } else {
+          const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+          uploadedImages.push({
+            url: base64,
+            publicId: `local_${Date.now()}_${Math.random().toString(36).substring(7)}`
+          });
+        }
+      } catch (err) {
+        console.warn("Cloudinary upload failed, falling back to base64:", err.message);
+        const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+        uploadedImages.push({
+          url: base64,
+          publicId: `fallback_${Date.now()}_${Math.random().toString(36).substring(7)}`
+        });
+      }
+    }
+
+    return uploadedImages;
+  }
 }
 
 
