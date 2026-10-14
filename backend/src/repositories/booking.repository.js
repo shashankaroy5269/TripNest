@@ -10,22 +10,16 @@ const BOOKING_STATUS =
 
 class BookingRepository {
 
-  // ==================================================
-  // CREATE BOOKING
-  // ==================================================
-
-  async create(data) {
+    // CREATE BOOKING
+    async create(data) {
 
     return Booking.create(data);
 
   }
 
 
-  // ==================================================
-  // FIND BOOKING BY ID
-  // ==================================================
-
-  async findById(bookingId) {
+    // FIND BOOKING BY ID
+    async findById(bookingId) {
     return Booking.findById(
       bookingId
     )
@@ -35,10 +29,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // FIND BOOKING FOR SPECIFIC USER
-  // ==================================================
-  // Prevents user from accessing another user's booking
+    // FIND BOOKING FOR SPECIFIC USER
+    // Prevents user from accessing another user's booking
 
   async findByIdForUser(
     bookingId,
@@ -54,11 +46,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // GET USER BOOKINGS
-  // ==================================================
-
-  async findByUser(userId) {
+    // GET USER BOOKINGS
+    async findByUser(userId) {
     return Booking.find({
       user: userId
     })
@@ -71,11 +60,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // GET HOTEL BOOKINGS
-  // ==================================================
-
-  async findByHotel(hotelId) {
+    // GET HOTEL BOOKINGS
+    async findByHotel(hotelId) {
 
     return Booking.find({
 
@@ -89,11 +75,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // UPDATE BOOKING
-  // ==================================================
-
-  async updateById(
+    // UPDATE BOOKING
+    async updateById(
     bookingId,
     updateData
   ) {
@@ -116,10 +99,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // GET OVERLAPPING BOOKINGS
-  // ==================================================
-  /*
+    // GET OVERLAPPING BOOKINGS
+    /*
     Date overlap condition:
 
     existing.checkIn < requested.checkOut
@@ -179,10 +160,8 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // GET BOOKED ROOM COUNT
-  // ==================================================
-  /*
+    // GET BOOKED ROOM COUNT
+    /*
     Used for room availability.
 
     Example:
@@ -286,11 +265,9 @@ class BookingRepository {
   }
 
 
-  // ==================================================
-  // GET COMPLETE BOOKING DETAILS
+    // GET COMPLETE BOOKING DETAILS
   // BOOKING + HOTEL + ROOM
-  // ==================================================
-  /*
+    /*
     Used for:
 
     - Booking confirmation email
@@ -335,11 +312,8 @@ class BookingRepository {
     const result =
       await Booking.aggregate([
 
-        // ======================================
-        // MATCH BOOKING
-        // ======================================
-
-        {
+                // MATCH BOOKING
+                {
           $match: {
 
             _id:
@@ -350,11 +324,8 @@ class BookingRepository {
         },
 
 
-        // ======================================
-        // HOTEL LOOKUP
-        // ======================================
-
-        {
+                // HOTEL LOOKUP
+                {
           $lookup: {
 
             from:
@@ -374,11 +345,8 @@ class BookingRepository {
         },
 
 
-        // ======================================
-        // ROOM LOOKUP
-        // ======================================
-
-        {
+                // ROOM LOOKUP
+                {
           $lookup: {
 
             from:
@@ -398,11 +366,8 @@ class BookingRepository {
         },
 
 
-        // ======================================
-        // UNWIND HOTEL
-        // ======================================
-
-        {
+                // UNWIND HOTEL
+                {
           $unwind: {
 
             path:
@@ -416,11 +381,8 @@ class BookingRepository {
         },
 
 
-        // ======================================
-        // UNWIND ROOM
-        // ======================================
-
-        {
+                // UNWIND ROOM
+                {
           $unwind: {
 
             path:
@@ -433,11 +395,8 @@ class BookingRepository {
 
         },
 
-        // ======================================
-        // PACKAGE LOOKUP (FOR TRIP BOOKINGS)
-        // ======================================
-
-        {
+                // PACKAGE LOOKUP (FOR TRIP BOOKINGS)
+                {
           $lookup: {
 
             from:

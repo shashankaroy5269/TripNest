@@ -49,11 +49,8 @@ const ACCOUNT_STATUS =
 class AuthService {
 
 
-  // ==================================================
-  // REGISTER
-  // ==================================================
-
-  async register({
+    // REGISTER
+    async register({
     name,
     email,
     phone,
@@ -132,10 +129,8 @@ class AuthService {
     };
   }
 
-  // ==================================================
-  // CHECK ADMIN SETUP STATUS
-  // ==================================================
-  async checkAdminSetup() {
+    // CHECK ADMIN SETUP STATUS
+    async checkAdminSetup() {
     const adminCount = await User.countDocuments({ role: ROLES.SUPER_ADMIN });
     return {
       hasSuperAdmin: adminCount > 0,
@@ -143,10 +138,8 @@ class AuthService {
     };
   }
 
-  // ==================================================
-  // REGISTER ADMIN / SETUP
-  // ==================================================
-  async registerAdmin({
+    // REGISTER ADMIN / SETUP
+    async registerAdmin({
     name,
     email,
     phone,
@@ -222,11 +215,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // VERIFY EMAIL
-  // ==================================================
-
-  async verifyEmail(token) {
+    // VERIFY EMAIL
+    async verifyEmail(token) {
     if (!token) {
       throw new AppError(
         "Verification token is required",
@@ -257,11 +247,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // RESEND VERIFICATION EMAIL
-  // ==================================================
-
-  async resendVerification(email) {
+    // RESEND VERIFICATION EMAIL
+    async resendVerification(email) {
     if (!email) {
       throw new AppError(
         "Email address is required",
@@ -302,11 +289,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // LOGIN
-  // ==================================================
-
-  async login(
+    // LOGIN
+    async login(
     email,
     password
   ) {
@@ -423,11 +407,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // STORE REFRESH TOKEN
-  // ==================================================
-
-  async storeRefreshToken(
+    // STORE REFRESH TOKEN
+    async storeRefreshToken(
     userId,
     refreshToken
   ) {
@@ -463,11 +444,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // REFRESH ACCESS TOKEN
-  // ==================================================
-
-  async refreshAccessToken(
+    // REFRESH ACCESS TOKEN
+    async refreshAccessToken(
     refreshToken
   ) {
 
@@ -571,11 +549,8 @@ class AuthService {
     }
 
 
-    // ================================================
-    // TOKEN ROTATION
-    // ================================================
-
-    await refreshTokenRepository
+        // TOKEN ROTATION
+        await refreshTokenRepository
       .deleteById(
         storedToken._id
       );
@@ -631,11 +606,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // LOGOUT
-  // ==================================================
-
-  async logout(
+    // LOGOUT
+    async logout(
     refreshToken
   ) {
 
@@ -668,11 +640,8 @@ class AuthService {
   }
 
 
-  // ==================================================
-  // LOGOUT ALL DEVICES
-  // ==================================================
-
-  async logoutAll(
+    // LOGOUT ALL DEVICES
+    async logoutAll(
     userId
   ) {
 

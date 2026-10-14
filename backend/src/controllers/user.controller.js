@@ -17,11 +17,8 @@ const ApiResponse =
 class UserController {
 
 
-  // ==================================================
-  // GET MY PROFILE
-  // ==================================================
-
-  getProfile = async (
+    // GET MY PROFILE
+    getProfile = async (
     req,
     res
   ) => {
@@ -47,11 +44,8 @@ class UserController {
   };
 
 
-  // ==================================================
-  // UPDATE PROFILE
-  // ==================================================
-
-  updateProfile = async (
+    // UPDATE PROFILE
+    updateProfile = async (
     req,
     res
   ) => {
@@ -81,11 +75,8 @@ class UserController {
   };
 
 
-  // ==================================================
-  // CHANGE PASSWORD
-  // ==================================================
-
-  changePassword = async (
+    // CHANGE PASSWORD
+    changePassword = async (
     req,
     res
   ) => {
@@ -113,11 +104,8 @@ class UserController {
   };
 
 
-  // ==================================================
-  // PROFILE IMAGE
-  // ==================================================
-
-  uploadProfileImage = async (
+    // PROFILE IMAGE
+    uploadProfileImage = async (
     req,
     res
   ) => {
@@ -148,11 +136,8 @@ class UserController {
   };
 
 
-  // ==================================================
-  // FORGOT PASSWORD
-  // ==================================================
-
-  forgotPassword = async (
+    // FORGOT PASSWORD
+    forgotPassword = async (
     req,
     res
   ) => {
@@ -175,11 +160,8 @@ class UserController {
   };
 
 
-  // ==================================================
-  // RESET PASSWORD
-  // ==================================================
-
-  resetPassword = async (
+    // RESET PASSWORD
+    resetPassword = async (
     req,
     res
   ) => {

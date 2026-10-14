@@ -18,7 +18,7 @@ const seedAll = async () => {
     await Database.connect();
     console.log("Starting full TripNest database seeding...");
 
-    // 1. CLEAR COLLECTIONS FOR FRESH CONSISTENT DATA
+    
     await Promise.all([
       User.deleteMany({}),
       Hotel.deleteMany({}),
@@ -124,7 +124,7 @@ const seedAll = async () => {
     // 4. SEED HOTELS
     const hotel1 = await Hotel.create({
       name: "The Grand Azure Beachfront Resort",
-      description: "Nestled along the pristine sands of Calangute Beach, The Grand Azure offers private beach access, infinity ocean-view pools, multi-cuisine dining, and world-class spa facilities.",
+      description: "Located right on Calangute Beach in North Goa, The Grand Azure offers beach access, outdoor swimming pools, multi-cuisine dining, and wellness spa facilities.",
       hotelType: "RESORT",
       owner: hotelAdmin._id,
       location: {
@@ -173,7 +173,7 @@ const seedAll = async () => {
 
     const hotel2 = await Hotel.create({
       name: "Himalayan Pines Luxury Retreat & Spa",
-      description: "Perched gracefully in the majestic cedar forests of Manali with panoramic views of the Pir Panjal mountain range, offering heated suites, bonfire evenings, and pine forest nature trails.",
+      description: "Located near Hadimba Road in Old Manali, offering mountain views, heated rooms, bonfire evenings, and peaceful nature surroundings.",
       hotelType: "HOTEL",
       owner: hotelAdmin._id,
       location: {
@@ -217,7 +217,7 @@ const seedAll = async () => {
 
     const hotel3 = await Hotel.create({
       name: "Royal Rajputana Palace Heritage Stay",
-      description: "An authentic 18th-century Rajput palace restored into a luxury heritage hotel. Experience royal hospitality, courtyard folk performances, hand-carved jharokhas, and rooftop candlelit dining.",
+      description: "Heritage hotel near Amer Fort highway featuring traditional Rajasthani architecture, courtyard cultural shows, rooftop dining, and comfortable stays.",
       hotelType: "RESORT",
       owner: hotelAdmin._id,
       location: {
@@ -261,7 +261,7 @@ const seedAll = async () => {
 
     const hotel4 = await Hotel.create({
       name: "Kerala Backwater Palm Lagoon Villa",
-      description: "Floating tranquil paradise on the serene banks of Vembanad Lake in Alleppey. Featuring private sundecks, traditional thatched roofs, authentic Kerala seafood, and Ayurvedic massage therapies.",
+      description: "Waterfront resort located along Vembanad Lake in Alleppey with private sundecks, traditional style cottages, authentic Kerala food, and Ayurvedic wellness facilities.",
       hotelType: "VILLA",
       owner: hotelAdmin._id,
       location: {
@@ -471,7 +471,7 @@ const seedAll = async () => {
       {
         title: "Scenic Himachal & Solang Valley Snow Explorer",
         destination: "Manali",
-        description: "Immerse in the alpine paradise of Himachal Pradesh. Snow activities in Solang Valley, drive to Atal Tunnel, serene Hadimba Devi Temple, and riverside trout dining.",
+        description: "Explore the scenic mountains of Himachal Pradesh with snow activities in Solang Valley, Atal Tunnel drive, Hadimba Temple visit, and local sightseeing.",
         duration: { days: 5, nights: 4 },
         startingPrice: 18999,
         capacity: 25,
@@ -636,9 +636,9 @@ const seedAll = async () => {
         featured: true
       },
       {
-        title: "Kerala Backwaters & Munnar Tea Plantation Bliss",
+        title: "Kerala Backwaters & Munnar Tea Plantation Tour",
         destination: "Kerala",
-        description: "Discover serene palm-fringed backwaters and misty rolling hills of tea in Munnar. Indulge in an exclusive overnight houseboat stay with freshly cooked Karimeen fish.",
+        description: "Explore the backwaters of Alleppey and the tea plantations of Munnar, including an overnight houseboat stay and scenic sightseeing tours.",
         duration: { days: 4, nights: 3 },
         startingPrice: 17500,
         capacity: 20,

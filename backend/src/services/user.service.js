@@ -31,11 +31,8 @@ const cloudinary =
 class UserService {
 
 
-  // ==================================================
-  // GET PROFILE
-  // ==================================================
-
-  async getProfile(
+    // GET PROFILE
+    async getProfile(
     userId
   ) {
 
@@ -62,11 +59,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // UPDATE PROFILE
-  // ==================================================
-
-  async updateProfile(
+    // UPDATE PROFILE
+    async updateProfile(
     userId,
     data
   ) {
@@ -125,11 +119,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // CHANGE PASSWORD
-  // ==================================================
-
-  async changePassword(
+    // CHANGE PASSWORD
+    async changePassword(
     userId,
     currentPassword,
     newPassword
@@ -215,11 +206,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // UPLOAD PROFILE IMAGE
-  // ==================================================
-
-  async uploadProfileImage(
+    // UPLOAD PROFILE IMAGE
+    async uploadProfileImage(
     userId,
     file
   ) {
@@ -252,11 +240,8 @@ class UserService {
     }
 
 
-    // ==========================================
-    // DELETE OLD CLOUDINARY IMAGE
-    // ==========================================
-
-    if (
+        // DELETE OLD CLOUDINARY IMAGE
+        if (
       user.profileImage &&
       user.profileImage.publicId
     ) {
@@ -278,11 +263,8 @@ class UserService {
     }
 
 
-    // ==========================================
-    // UPLOAD NEW IMAGE
-    // ==========================================
-
-    const uploadResult =
+        // UPLOAD NEW IMAGE
+        const uploadResult =
       await new Promise(
         (resolve, reject) => {
 
@@ -349,11 +331,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // FORGOT PASSWORD
-  // ==================================================
-
-  async forgotPassword(
+    // FORGOT PASSWORD
+    async forgotPassword(
     email
   ) {
 
@@ -432,11 +411,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // RESET PASSWORD
-  // ==================================================
-
-  async resetPassword(
+    // RESET PASSWORD
+    async resetPassword(
     token,
     newPassword
   ) {
@@ -499,11 +475,8 @@ class UserService {
   }
 
 
-  // ==================================================
-  // SANITIZE USER
-  // ==================================================
-
-  sanitizeUser(
+    // SANITIZE USER
+    sanitizeUser(
     user
   ) {
 

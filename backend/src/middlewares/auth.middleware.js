@@ -31,11 +31,8 @@ const authenticate =
 
     try {
 
-      // ==================================
-      // GET AUTHORIZATION HEADER
-      // ==================================
-
-      const authHeader = req.headers.authorization;
+            // GET AUTHORIZATION HEADER
+            const authHeader = req.headers.authorization;
       let token;
       if (authHeader && authHeader.startsWith("Bearer ")) {
         token = authHeader.split(" ")[1];
@@ -57,21 +54,15 @@ const authenticate =
       }
 
 
-      // ==================================
-      // VERIFY TOKEN
-      // ==================================
-
-      const decoded =
+            // VERIFY TOKEN
+            const decoded =
         verifyAccessToken(
           token
         );
 
 
-      // ==================================
-      // FIND USER
-      // ==================================
-
-      const user =
+            // FIND USER
+            const user =
         await authRepository.findById(
           decoded.userId
         );
@@ -88,11 +79,8 @@ const authenticate =
       }
 
 
-      // ==================================
-      // CHECK ACCOUNT STATUS
-      // ==================================
-
-      if (
+            // CHECK ACCOUNT STATUS
+            if (
         user.status !==
         ACCOUNT_STATUS.ACTIVE
       ) {
@@ -106,11 +94,8 @@ const authenticate =
       }
 
 
-      // ==================================
-      // ATTACH USER TO REQUEST
-      // ==================================
-
-      req.user = {
+            // ATTACH USER TO REQUEST
+            req.user = {
 
         userId:
           user._id.toString(),

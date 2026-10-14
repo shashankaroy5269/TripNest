@@ -3,11 +3,8 @@ const User =
 
 class UserRepository {
 
-  // ==========================================
-  // FIND USER BY ID
-  // ==========================================
-
-  async findById(userId) {
+    // FIND USER BY ID
+    async findById(userId) {
 
     return User.findById(
       userId
@@ -15,11 +12,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // FIND USER BY ID WITH PASSWORD
-  // ==========================================
-
-  async findByIdWithPassword(
+    // FIND USER BY ID WITH PASSWORD
+    async findByIdWithPassword(
     userId
   ) {
 
@@ -29,11 +23,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // UPDATE USER
-  // ==========================================
-
-  async updateById(
+    // UPDATE USER
+    async updateById(
     userId,
     updateData
   ) {
@@ -54,11 +45,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // UPDATE PASSWORD
-  // ==========================================
-
-  async updatePassword(
+    // UPDATE PASSWORD
+    async updatePassword(
     userId,
     passwordHash
   ) {
@@ -80,11 +68,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // FIND USER BY EMAIL
-  // ==========================================
-
-  async findByEmail(
+    // FIND USER BY EMAIL
+    async findByEmail(
     email
   ) {
 
@@ -94,11 +79,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // SAVE RESET TOKEN
-  // ==========================================
-
-  async saveResetToken(
+    // SAVE RESET TOKEN
+    async saveResetToken(
     userId,
     resetTokenHash,
     resetTokenExpires
@@ -127,11 +109,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // FIND USER BY RESET TOKEN
-  // ==========================================
-
-  async findByResetToken(
+    // FIND USER BY RESET TOKEN
+    async findByResetToken(
     resetTokenHash
   ) {
 
@@ -150,11 +129,8 @@ class UserRepository {
   }
 
 
-  // ==========================================
-  // CLEAR RESET TOKEN
-  // ==========================================
-
-  async clearResetToken(
+    // CLEAR RESET TOKEN
+    async clearResetToken(
     userId
   ) {
 

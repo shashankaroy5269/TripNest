@@ -11,11 +11,8 @@ const ApiResponse =
 
 class RoomController {
 
-  // ==================================================
-  // CREATE ROOM
-  // ==================================================
-
-  createRoom = async (
+    // CREATE ROOM
+    createRoom = async (
     req,
     res
   ) => {
@@ -54,11 +51,8 @@ class RoomController {
   };
 
 
-  // ==================================================
-  // GET ROOM
-  // ==================================================
-
-  getRoom = async (
+    // GET ROOM
+    getRoom = async (
     req,
     res
   ) => {
@@ -83,11 +77,8 @@ class RoomController {
   };
 
 
-  // ==================================================
-  // GET HOTEL ROOMS
-  // ==================================================
-
-  getHotelRooms = async (
+    // GET HOTEL ROOMS
+    getHotelRooms = async (
     req,
     res
   ) => {
@@ -113,11 +104,8 @@ class RoomController {
   };
 
 
-  // ==================================================
-  // UPDATE ROOM
-  // ==================================================
-
-  updateRoom = async (
+    // UPDATE ROOM
+    updateRoom = async (
     req,
     res
   ) => {
@@ -142,11 +130,8 @@ class RoomController {
   };
 
 
-  // ==================================================
-  // DELETE ROOM
-  // ==================================================
-
-  deleteRoom = async (
+    // DELETE ROOM
+    deleteRoom = async (
     req,
     res
   ) => {
@@ -168,10 +153,8 @@ class RoomController {
     );
   };
 
-  // ==================================================
-  // BULK CREATE ROOMS
-  // ==================================================
-  bulkCreateRooms = async (
+    // BULK CREATE ROOMS
+    bulkCreateRooms = async (
     req,
     res
   ) => {

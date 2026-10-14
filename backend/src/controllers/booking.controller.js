@@ -12,11 +12,8 @@ const ApiResponse =
 
 class BookingController {
 
-  // ==================================================
-  // CREATE BOOKING (HOTEL OR TRIP - UNIFIED ENDPOINT)
-  // ==================================================
-
-  createBooking = async (req, res) => {
+    // CREATE BOOKING (HOTEL OR TRIP - UNIFIED ENDPOINT)
+    createBooking = async (req, res) => {
     const isTrip = req.body.bookingType === "TRIP" || !!req.body.package;
     const traveler = req.body.primaryContact || req.body.traveler || {
       name: req.user?.name || "Guest Traveler",
@@ -65,11 +62,8 @@ class BookingController {
     }
   };
 
-  // ==================================================
-  // CREATE HOTEL BOOKING
-  // ==================================================
-
-  createHotelBooking = async (
+    // CREATE HOTEL BOOKING
+    createHotelBooking = async (
     req,
     res
   ) => {
@@ -103,11 +97,8 @@ class BookingController {
   };
 
 
-  // ==================================================
-  // CREATE TRIP BOOKING
-  // ==================================================
-
-  createTripBooking = async (
+    // CREATE TRIP BOOKING
+    createTripBooking = async (
     req,
     res
   ) => {
@@ -131,11 +122,8 @@ class BookingController {
   };
 
 
-  // ==================================================
-  // MY BOOKINGS
-  // ==================================================
-
-  getMyBookings = async (
+    // MY BOOKINGS
+    getMyBookings = async (
     req,
     res
   ) => {
@@ -163,11 +151,8 @@ class BookingController {
   };
 
 
-  // ==================================================
-  // SINGLE BOOKING
-  // ==================================================
-
-  getMyBooking = async (
+    // SINGLE BOOKING
+    getMyBooking = async (
     req,
     res
   ) => {
@@ -199,11 +184,8 @@ class BookingController {
   };
 
 
-  // ==================================================
-  // CANCEL BOOKING
-  // ==================================================
-
-  cancelBooking = async (
+    // CANCEL BOOKING
+    cancelBooking = async (
     req,
     res
   ) => {
@@ -233,11 +215,8 @@ class BookingController {
   };
 
 
-  // ==================================================
-  // DOWNLOAD INVOICE PDF
-  // ==================================================
-
-  downloadInvoice = async (
+    // DOWNLOAD INVOICE PDF
+    downloadInvoice = async (
     req,
     res
   ) => {

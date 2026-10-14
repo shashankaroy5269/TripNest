@@ -20,11 +20,8 @@ const {
 
 class HotelService {
 
-  // ==================================================
-  // CREATE HOTEL
-  // ==================================================
-
-  async createHotel(
+    // CREATE HOTEL
+    async createHotel(
     ownerId,
     data
   ) {
@@ -129,11 +126,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // GET HOTEL
-  // ==================================================
-
-  async getHotel(
+    // GET HOTEL
+    async getHotel(
     hotelId
   ) {
 
@@ -156,11 +150,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // GET MY HOTELS
-  // ==================================================
-
-  async getMyHotels(
+    // GET MY HOTELS
+    async getMyHotels(
     ownerId
   ) {
 
@@ -171,11 +162,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // GET ALL HOTELS
-  // ==================================================
-
-  async getAllHotels(
+    // GET ALL HOTELS
+    async getAllHotels(
     queryParams = {},
     isAdmin = false
   ) {
@@ -254,11 +242,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // UPDATE HOTEL
-  // ==================================================
-
-  async updateHotel(
+    // UPDATE HOTEL
+    async updateHotel(
     hotelId,
     ownerId,
     data
@@ -466,11 +451,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // APPROVE HOTEL
-  // ==================================================
-
-  async approveHotel(
+    // APPROVE HOTEL
+    async approveHotel(
     hotelId,
     adminId
   ) {
@@ -530,11 +512,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // REJECT HOTEL
-  // ==================================================
-
-  async rejectHotel(
+    // REJECT HOTEL
+    async rejectHotel(
     hotelId,
     reason
   ) {
@@ -578,11 +557,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // BLOCK HOTEL
-  // ==================================================
-
-  async blockHotel(
+    // BLOCK HOTEL
+    async blockHotel(
     hotelId
   ) {
 
@@ -614,11 +590,8 @@ class HotelService {
   }
 
 
-  // ==================================================
-  // DELETE HOTEL
-  // ==================================================
-
-  async deleteHotel(
+    // DELETE HOTEL
+    async deleteHotel(
     hotelId,
     ownerId
   ) {
@@ -671,10 +644,7 @@ class HotelService {
   }
 
 
-  // ==================================================
-// ADD HOTEL IMAGES
-// ==================================================
-
+  // ADD HOTEL IMAGES
 async addHotelImages(
   hotelId,
   ownerId,
@@ -875,10 +845,7 @@ async addHotelImages(
   );
 }
 
-// ==================================================
 // DELETE HOTEL IMAGE
-// ==================================================
-
 async deleteHotelImage(
   hotelId,
   ownerId,
@@ -984,10 +951,8 @@ async deleteHotelImage(
   );
 }
 
-  // ==================================================
-  // UPLOAD FILES TO CLOUDINARY (OR BASE64 FALLBACK)
-  // ==================================================
-  async uploadFilesToCloudinary(files) {
+    // UPLOAD FILES TO CLOUDINARY (OR BASE64 FALLBACK)
+    async uploadFilesToCloudinary(files) {
     if (!files || files.length === 0) {
       throw new AppError("No files provided", httpStatus.StatusCodes.BAD_REQUEST);
     }
@@ -1037,11 +1002,8 @@ async deleteHotelImage(
     return uploadedImages;
   }
 
-  // ==================================================
-  // BULK CREATE HOTELS
-  // ==================================================
-
-  async bulkCreateHotels(ownerId, userRole, hotelsArray) {
+    // BULK CREATE HOTELS
+    async bulkCreateHotels(ownerId, userRole, hotelsArray) {
     if (!Array.isArray(hotelsArray) || hotelsArray.length === 0) {
       throw new AppError("No hotel records provided for bulk import", httpStatus.StatusCodes.BAD_REQUEST);
     }

@@ -11,11 +11,8 @@ const ApiResponse =
 
 class AvailabilityController {
 
-  // ==================================================
-  // CHECK AVAILABILITY
-  // ==================================================
-
-  checkAvailability = async (
+    // CHECK AVAILABILITY
+    checkAvailability = async (
     req,
     res
   ) => {
@@ -66,11 +63,8 @@ class AvailabilityController {
   };
 
 
-  // ==================================================
-  // CHECK HOTEL ROOMS AVAILABILITY
-  // ==================================================
-
-  checkHotelAvailability = async (
+    // CHECK HOTEL ROOMS AVAILABILITY
+    checkHotelAvailability = async (
     req,
     res
   ) => {
@@ -121,11 +115,8 @@ class AvailabilityController {
   };
 
 
-  // ==================================================
-  // CALCULATE BOOKING PRICE
-  // ==================================================
-
-  calculatePrice = async (
+    // CALCULATE BOOKING PRICE
+    calculatePrice = async (
     req,
     res
   ) => {

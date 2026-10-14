@@ -5,10 +5,8 @@ const Destination = require("../models/destination.model");
 const AppError = require("../utils/appError");
 
 class PackageService {
-  // ==================================================
-  // CREATE PACKAGE
-  // ==================================================
-  async createPackage(managerId, data) {
+    // CREATE PACKAGE
+    async createPackage(managerId, data) {
     const days = Number(data.durationDays || data.days || data.duration?.days || 3);
     const nights = Number(
       data.durationNights || data.nights || data.duration?.nights || Math.max(1, days - 1)
@@ -105,10 +103,8 @@ class PackageService {
     return pkg;
   }
 
-  // ==================================================
-  // GET ALL PACKAGES
-  // ==================================================
-  async getAllPackages(queryParams = {}) {
+    // GET ALL PACKAGES
+    async getAllPackages(queryParams = {}) {
     const filter = { status: "ACTIVE" };
 
     if (queryParams.destination) {
@@ -153,10 +149,8 @@ class PackageService {
     return Package.find(filter).sort(sort).populate("manager", "name email");
   }
 
-  // ==================================================
-  // GET SINGLE PACKAGE
-  // ==================================================
-  async getPackageById(packageId) {
+    // GET SINGLE PACKAGE
+    async getPackageById(packageId) {
     const pkg = await Package.findById(packageId).populate("manager", "name email");
     if (!pkg) {
       throw new AppError("Holiday package not found", httpStatus.StatusCodes.NOT_FOUND);
@@ -200,10 +194,8 @@ class PackageService {
     return pkg;
   }
 
-  // ==================================================
-  // UPDATE PACKAGE
-  // ==================================================
-  async updatePackage(packageId, managerId, data, userRole) {
+    // UPDATE PACKAGE
+    async updatePackage(packageId, managerId, data, userRole) {
     const pkg = await Package.findById(packageId);
     if (!pkg) {
       throw new AppError("Package not found", httpStatus.StatusCodes.NOT_FOUND);
@@ -217,10 +209,8 @@ class PackageService {
     return pkg.save();
   }
 
-  // ==================================================
-  // DELETE PACKAGE
-  // ==================================================
-  async deletePackage(packageId, managerId, userRole) {
+    // DELETE PACKAGE
+    async deletePackage(packageId, managerId, userRole) {
     const pkg = await Package.findById(packageId);
     if (!pkg) {
       throw new AppError("Package not found", httpStatus.StatusCodes.NOT_FOUND);
@@ -233,10 +223,8 @@ class PackageService {
     return Package.findByIdAndDelete(packageId);
   }
 
-  // ==================================================
-  // CHECK SEAT AVAILABILITY
-  // ==================================================
-  async checkSeatsAvailability(packageId, requestedSeats = 1) {
+    // CHECK SEAT AVAILABILITY
+    async checkSeatsAvailability(packageId, requestedSeats = 1) {
     const pkg = await Package.findById(packageId);
     if (!pkg) {
       throw new AppError("Package not found", httpStatus.StatusCodes.NOT_FOUND);
@@ -251,24 +239,18 @@ class PackageService {
     };
   }
 
-  // ==================================================
-  // GET FEATURED PACKAGES
-  // ==================================================
-  async getFeaturedPackages() {
+    // GET FEATURED PACKAGES
+    async getFeaturedPackages() {
     return Package.find({ status: "ACTIVE" }).sort({ rating: -1, createdAt: -1 }).limit(6);
   }
 
-  // ==================================================
-  // GET DESTINATIONS
-  // ==================================================
-  async getDestinations() {
+    // GET DESTINATIONS
+    async getDestinations() {
     return Destination.find().sort({ popular: -1, name: 1 });
   }
 
-  // ==================================================
-  // GET PASSENGER BOOKINGS FOR SPECIFIC PACKAGE
-  // ==================================================
-  async getPackageBookings(packageId, user) {
+    // GET PASSENGER BOOKINGS FOR SPECIFIC PACKAGE
+    async getPackageBookings(packageId, user) {
     const pkg = await Package.findById(packageId);
     if (!pkg) {
       throw new AppError("Package not found", httpStatus.StatusCodes.NOT_FOUND);

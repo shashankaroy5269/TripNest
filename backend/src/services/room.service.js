@@ -27,11 +27,8 @@ const {
 
 class RoomService {
 
-  // ==================================================
-  // CHECK HOTEL OWNERSHIP
-  // ==================================================
-
-  async checkHotelOwnership(
+    // CHECK HOTEL OWNERSHIP
+    async checkHotelOwnership(
     hotelId,
     ownerId,
     userRole
@@ -76,11 +73,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // CREATE ROOM
-  // ==================================================
-
-  async createRoom(
+    // CREATE ROOM
+    async createRoom(
     hotelId,
     ownerId,
     data,
@@ -160,11 +154,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // GET ROOM
-  // ==================================================
-
-  async getRoom(
+    // GET ROOM
+    async getRoom(
     roomId
   ) {
 
@@ -185,11 +176,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // GET HOTEL ROOMS
-  // ==================================================
-
-  async getHotelRooms(
+    // GET HOTEL ROOMS
+    async getHotelRooms(
     hotelId
   ) {
 
@@ -212,11 +200,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // UPDATE ROOM
-  // ==================================================
-
-  async updateRoom(
+    // UPDATE ROOM
+    async updateRoom(
     roomId,
     ownerId,
     data,
@@ -327,11 +312,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // DELETE ROOM
-  // ==================================================
-
-  async deleteRoom(
+    // DELETE ROOM
+    async deleteRoom(
     roomId,
     ownerId,
     userRole
@@ -364,11 +346,8 @@ class RoomService {
   }
 
 
-  // ==================================================
-  // CALCULATE FINAL PRICE
-  // ==================================================
-
-  calculateFinalPrice(
+    // CALCULATE FINAL PRICE
+    calculateFinalPrice(
     basePrice,
     discountPercentage
   ) {
@@ -387,10 +366,8 @@ class RoomService {
     );
   }
 
-  // ==================================================
-  // BULK CREATE ROOMS
-  // ==================================================
-  async bulkCreateRooms(
+    // BULK CREATE ROOMS
+    async bulkCreateRooms(
     hotelId,
     ownerId,
     roomsData,

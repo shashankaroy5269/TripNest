@@ -22,11 +22,8 @@ const AppError =
 
 class AvailabilityService {
 
-  // ==================================================
-  // CHECK ROOM AVAILABILITY
-  // ==================================================
-
-  async checkRoomAvailability({
+    // CHECK ROOM AVAILABILITY
+    async checkRoomAvailability({
 
     roomId,
 
@@ -237,11 +234,8 @@ class AvailabilityService {
   }
 
 
-  // ==================================================
-  // CHECK HOTEL ROOMS AVAILABILITY (ALL ROOMS FOR HOTEL)
-  // ==================================================
-
-  async checkHotelRoomsAvailability({
+    // CHECK HOTEL ROOMS AVAILABILITY (ALL ROOMS FOR HOTEL)
+    async checkHotelRoomsAvailability({
     hotelId,
     checkIn,
     checkOut,
@@ -315,11 +309,8 @@ class AvailabilityService {
   }
 
 
-  // ==================================================
-  // CALCULATE NIGHTS
-  // ==================================================
-
-  calculateNights(
+    // CALCULATE NIGHTS
+    calculateNights(
     checkIn,
     checkOut
   ) {
@@ -362,11 +353,8 @@ class AvailabilityService {
   }
 
 
-  // ==================================================
-  // SERVER-SIDE TOTAL PRICE
-  // ==================================================
-
-  async calculateBookingPrice({
+    // SERVER-SIDE TOTAL PRICE
+    async calculateBookingPrice({
 
     roomId,
 
@@ -464,11 +452,8 @@ class AvailabilityService {
   }
 
 
-  // ==================================================
-  // DATE PARSER
-  // ==================================================
-
-  parseDate(
+    // DATE PARSER
+    parseDate(
     value
   ) {
 

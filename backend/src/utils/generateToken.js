@@ -2,10 +2,7 @@ const jwt =
   require("jsonwebtoken");
 
 
-// ==========================
 // ACCESS TOKEN
-// ==========================
-
 const generateAccessToken =
   (payload) => {
 
@@ -23,10 +20,7 @@ const generateAccessToken =
   };
 
 
-// ==========================
 // REFRESH TOKEN
-// ==========================
-
 const generateRefreshToken =
   (payload) => {
 
@@ -44,10 +38,7 @@ const generateRefreshToken =
   };
 
 
-// ==========================
 // VERIFY ACCESS TOKEN
-// ==========================
-
 const verifyAccessToken =
   (token) => {
 
@@ -59,10 +50,7 @@ const verifyAccessToken =
   };
 
 
-// ==========================
 // VERIFY REFRESH TOKEN
-// ==========================
-
 const verifyRefreshToken =
   (token) => {
 

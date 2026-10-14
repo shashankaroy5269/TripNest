@@ -54,11 +54,8 @@ const Coupon =
 class BookingService {
 
 
-  // ==================================================
-  // CREATE HOTEL BOOKING
-  // ==================================================
-
-  async createHotelBooking(
+    // CREATE HOTEL BOOKING
+    async createHotelBooking(
     userId,
     data
   ) {
@@ -360,11 +357,8 @@ class BookingService {
   }
 
 
-  // ==================================================
-  // CREATE TRIP / PACKAGE BOOKING
-  // ==================================================
-
-  async createTripBooking(
+    // CREATE TRIP / PACKAGE BOOKING
+    async createTripBooking(
     userId,
     data
   ) {
@@ -498,11 +492,8 @@ class BookingService {
   }
 
 
-  // ==================================================
-  // GET MY BOOKINGS
-  // ==================================================
-
-  async getMyBookings(
+    // GET MY BOOKINGS
+    async getMyBookings(
     userId
   ) {
 
@@ -514,11 +505,8 @@ class BookingService {
   }
 
 
-  // ==================================================
-  // GET MY BOOKING
-  // ==================================================
-
-  async getMyBooking(
+    // GET MY BOOKING
+    async getMyBooking(
     bookingId,
     userId
   ) {
@@ -546,11 +534,8 @@ class BookingService {
   }
 
 
-  // ==================================================
-  // CANCEL BOOKING
-  // ==================================================
-
-  async cancelBooking(
+    // CANCEL BOOKING
+    async cancelBooking(
     bookingId,
     userId
   ) {
@@ -647,11 +632,8 @@ class BookingService {
   }
 
 
-  // ==================================================
-  // GET BOOKING INVOICE PDF
-  // ==================================================
-
-  async getBookingInvoicePdf(
+    // GET BOOKING INVOICE PDF
+    async getBookingInvoicePdf(
     bookingId,
     userId,
     userRole

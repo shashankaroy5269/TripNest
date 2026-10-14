@@ -65,19 +65,13 @@ const app =
   express();
 
 
-// ==========================
 // SECURITY
-// ==========================
-
 app.use(
   helmet()
 );
 
 
-// ==========================
 // CORS
-// ==========================
-
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:5173",
@@ -104,10 +98,7 @@ app.use(
 );
 
 
-// ==========================
 // BODY PARSER
-// ==========================
-
 app.use(
   express.json()
 );
@@ -119,19 +110,13 @@ app.use(
 );
 
 
-// ==========================
 // COOKIE
-// ==========================
-
 app.use(
   cookieParser()
 );
 
 
-// ==========================
 // LOGGER
-// ==========================
-
 if (
   process.env.NODE_ENV !==
   "production"
@@ -143,10 +128,7 @@ if (
 }
 
 
-// ==========================
 // HEALTH CHECK
-// ==========================
-
 app.get(
   "/api/health",
 
@@ -164,10 +146,7 @@ app.get(
 );
 
 
-// ==========================
 // ROUTES
-// ==========================
-
 app.use(
   "/api/auth",
   authRoutes
@@ -233,10 +212,7 @@ app.use(
   inquiryRoutes
 );
 
-// ==========================
 // 404 HANDLER FOR UNMATCHED ROUTES
-// ==========================
-
 app.use((req, res, next) => {
   return ApiResponse.error(res, {
     statusCode: 404,
@@ -244,10 +220,7 @@ app.use((req, res, next) => {
   });
 });
 
-// ==========================
 // ERROR HANDLER
-// ==========================
-
 app.use(
   errorMiddleware
 );

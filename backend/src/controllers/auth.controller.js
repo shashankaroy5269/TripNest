@@ -17,11 +17,8 @@ const ApiResponse =
 class AuthController {
 
 
-  // ==================================================
-  // REGISTER
-  // ==================================================
-
-  register = async (
+    // REGISTER
+    register = async (
     req,
     res
   ) => {
@@ -50,11 +47,8 @@ class AuthController {
     );
   };
 
-  // ==================================================
-  // CHECK ADMIN SETUP STATUS
-  // ==================================================
-
-  checkAdminSetup = async (req, res) => {
+    // CHECK ADMIN SETUP STATUS
+    checkAdminSetup = async (req, res) => {
     const result = await authService.checkAdminSetup();
     return ApiResponse.success(res, {
       message: "Admin setup status fetched",
@@ -62,11 +56,8 @@ class AuthController {
     });
   };
 
-  // ==================================================
-  // REGISTER ADMIN / SETUP
-  // ==================================================
-
-  registerAdmin = async (req, res) => {
+    // REGISTER ADMIN / SETUP
+    registerAdmin = async (req, res) => {
     const result = await authService.registerAdmin(req.body);
     this.setRefreshTokenCookie(res, result.refreshToken);
 
@@ -82,11 +73,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // VERIFY EMAIL
-  // ==================================================
-
-  verifyEmail = async (
+    // VERIFY EMAIL
+    verifyEmail = async (
     req,
     res
   ) => {
@@ -108,11 +96,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // RESEND VERIFICATION
-  // ==================================================
-
-  resendVerification = async (
+    // RESEND VERIFICATION
+    resendVerification = async (
     req,
     res
   ) => {
@@ -134,11 +119,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // LOGIN
-  // ==================================================
-
-  login = async (
+    // LOGIN
+    login = async (
     req,
     res
   ) => {
@@ -182,11 +164,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // REFRESH TOKEN
-  // ==================================================
-
-  refreshToken = async (
+    // REFRESH TOKEN
+    refreshToken = async (
     req,
     res
   ) => {
@@ -237,11 +216,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // LOGOUT
-  // ==================================================
-
-  logout = async (
+    // LOGOUT
+    logout = async (
     req,
     res
   ) => {
@@ -279,11 +255,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // LOGOUT ALL
-  // ==================================================
-
-  logoutAll = async (
+    // LOGOUT ALL
+    logoutAll = async (
     req,
     res
   ) => {
@@ -310,11 +283,8 @@ class AuthController {
   };
 
 
-  // ==================================================
-  // SET COOKIE
-  // ==================================================
-
-  setRefreshTokenCookie(
+    // SET COOKIE
+    setRefreshTokenCookie(
     res,
     refreshToken
   ) {
@@ -358,11 +328,8 @@ class AuthController {
   }
 
 
-  // ==================================================
-  // CLEAR COOKIE
-  // ==================================================
-
-  clearRefreshTokenCookie(
+    // CLEAR COOKIE
+    clearRefreshTokenCookie(
     res
   ) {
 

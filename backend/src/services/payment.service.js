@@ -31,11 +31,8 @@ const { Package } =
 
 class PaymentService {
 
-  // ==================================================
-  // CREATE RAZORPAY ORDER
-  // ==================================================
-
-  async createPaymentOrder(
+    // CREATE RAZORPAY ORDER
+    async createPaymentOrder(
     userId,
     bookingId
   ) {
@@ -294,11 +291,8 @@ class PaymentService {
   }
 
 
-  // ==================================================
-  // VERIFY RAZORPAY PAYMENT
-  // ==================================================
-
-  async verifyPayment(
+    // VERIFY RAZORPAY PAYMENT
+    async verifyPayment(
     userId,
     {
       razorpayOrderId,
@@ -369,11 +363,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // CHECK TEST / DEMO ORDER
-    // ==================================================
-
-    const isTestOrder =
+        // CHECK TEST / DEMO ORDER
+        const isTestOrder =
       razorpayOrderId.startsWith("order_test_") ||
       (razorpayPaymentId && razorpayPaymentId.startsWith("pay_test_"));
 
@@ -431,11 +422,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // FETCH RAZORPAY ORDER
-    // ==================================================
-
-    let razorpayOrder;
+        // FETCH RAZORPAY ORDER
+        let razorpayOrder;
 
     try {
 
@@ -459,11 +447,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // VERIFY ORDER AMOUNT
-    // ==================================================
-
-    const expectedAmount =
+        // VERIFY ORDER AMOUNT
+        const expectedAmount =
       Math.round(
         Number(payment.amount) * 100
       );
@@ -499,11 +484,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // VERIFY ORDER ID
-    // ==================================================
-
-    if (
+        // VERIFY ORDER ID
+        if (
       razorpayOrder.id !==
       razorpayOrderId
     ) {
@@ -533,11 +515,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // FETCH RAZORPAY PAYMENT
-    // ==================================================
-
-    let razorpayPayment;
+        // FETCH RAZORPAY PAYMENT
+        let razorpayPayment;
 
     try {
 
@@ -561,11 +540,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // VERIFY PAYMENT BELONGS TO ORDER
-    // ==================================================
-
-    if (
+        // VERIFY PAYMENT BELONGS TO ORDER
+        if (
       razorpayPayment.order_id !==
       razorpayOrderId
     ) {
@@ -595,11 +571,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // VERIFY PAYMENT AMOUNT
-    // ==================================================
-
-    if (
+        // VERIFY PAYMENT AMOUNT
+        if (
       Number(razorpayPayment.amount) !==
       expectedAmount
     ) {
@@ -629,11 +602,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // VERIFY PAYMENT STATUS
-    // ==================================================
-
-    if (
+        // VERIFY PAYMENT STATUS
+        if (
       razorpayPayment.status !==
       "captured"
     ) {
@@ -664,11 +634,8 @@ class PaymentService {
     } // end if (!isTestOrder)
 
 
-    // ==================================================
-    // CHECK DUPLICATE PAYMENT ID
-    // ==================================================
-
-    const existingPayment =
+        // CHECK DUPLICATE PAYMENT ID
+        const existingPayment =
       await paymentRepository
         .findByRazorpayPaymentId(
           razorpayPaymentId
@@ -689,11 +656,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // GET BOOKING
-    // ==================================================
-
-    const booking =
+        // GET BOOKING
+        const booking =
       await bookingRepository.findById(
         payment.booking
       );
@@ -709,11 +673,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // BOOKING MUST STILL BE PENDING
-    // ==================================================
-
-    if (
+        // BOOKING MUST STILL BE PENDING
+        if (
       booking.status !==
       BOOKING_STATUS.PENDING
     ) {
@@ -726,11 +687,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // UPDATE PAYMENT
-    // ==================================================
-
-    const updatedPayment =
+        // UPDATE PAYMENT
+        const updatedPayment =
       await paymentRepository.updateById(
 
         payment._id,
@@ -757,11 +715,8 @@ class PaymentService {
       );
 
 
-    // ==================================================
-    // CONFIRM BOOKING
-    // ==================================================
-
-    const confirmedBooking =
+        // CONFIRM BOOKING
+        const confirmedBooking =
       await bookingRepository.updateById(
 
         booking._id,
@@ -784,10 +739,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // GET COMPLETE BOOKING DETAILS
-    // ==================================================
-    /*
+        // GET COMPLETE BOOKING DETAILS
+        /*
       Booking
         +
       Hotel
@@ -812,11 +765,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // GENERATE BOOKING PDF
-    // ==================================================
-
-    let pdfBuffer = null;
+        // GENERATE BOOKING PDF
+        let pdfBuffer = null;
 
     try {
 
@@ -846,11 +796,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // SEND BOOKING CONFIRMATION EMAIL
-    // ==================================================
-
-    let emailSent = false;
+        // SEND BOOKING CONFIRMATION EMAIL
+        let emailSent = false;
 
     if (pdfBuffer) {
 
@@ -893,11 +840,8 @@ class PaymentService {
     }
 
 
-    // ==================================================
-    // FINAL RESPONSE
-    // ==================================================
-
-    return {
+        // FINAL RESPONSE
+        return {
 
       success:
         true,
@@ -956,11 +900,8 @@ class PaymentService {
   }
 
 
-  // ==================================================
-  // GET PAYMENT BY BOOKING
-  // ==================================================
-
-  async getPayment(
+    // GET PAYMENT BY BOOKING
+    async getPayment(
     userId,
     bookingId
   ) {

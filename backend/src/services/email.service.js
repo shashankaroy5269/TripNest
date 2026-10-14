@@ -6,10 +6,8 @@ class EmailService {
     return `"TripNest Travel" <${String(raw).replace(/['"]/g, "").trim()}>`;
   }
 
-  // ==================================================
-  // SEND EMAIL VERIFICATION
-  // ==================================================
-  async sendVerificationEmail({ email, name, token }) {
+    // SEND EMAIL VERIFICATION
+    async sendVerificationEmail({ email, name, token }) {
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const verificationUrl = `${clientUrl}/verify-email?token=${token}`;
 
@@ -59,10 +57,8 @@ class EmailService {
     }
   }
 
-  // ==================================================
-  // SEND BOOKING CONFIRMATION EMAIL WITH PDF
-  // ==================================================
-  async sendBookingConfirmation({ booking, payment, pdfBuffer }) {
+    // SEND BOOKING CONFIRMATION EMAIL WITH PDF
+    async sendBookingConfirmation({ booking, payment, pdfBuffer }) {
     const recipient = booking.traveler?.email || booking.user?.email;
     if (!recipient) return null;
 

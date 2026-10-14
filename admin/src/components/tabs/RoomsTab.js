@@ -636,15 +636,6 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
     setSelectedRowIds(validIds);
   };
 
-  const handleSelectPresetRows = (targetRowNumbers) => {
-    const targetSet = new Set(targetRowNumbers.map((num) => `row_${num}`));
-    const matched = new Set(
-      parsedRows.filter((r) => targetSet.has(r.id)).map((r) => r.id)
-    );
-    setSelectedRowIds(matched);
-    showToast(`Selected ${matched.size} preset rows: [${targetRowNumbers.join(", ")}]`, "info");
-  };
-
   const handleDownloadSampleCSV = () => {
     const csvUrl = "/sample_rooms_50.csv";
     const link = document.createElement("a");
@@ -1949,14 +1940,6 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                         title="Deselect all rows (clear selection)"
                       >
                         Clear Selection
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSelectPresetRows([2, 7, 15])}
-                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold transition"
-                        title="Select exactly rows 2, 7, and 15 (test requirement)"
-                      >
-                        🎯 Select Rows 2, 7, 15
                       </button>
                     </div>
                   </div>

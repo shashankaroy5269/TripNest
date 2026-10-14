@@ -32,63 +32,63 @@ import {
 const ROOM_TYPE_META = {
   DELUXE: {
     label: "Deluxe",
-    title: "Deluxe Luxury Rooms",
-    tagline: "Serene & Comfortable Stays",
-    desc: "Spacious rooms crafted for relaxed luxury with premium bedding, ensuite bath, and scenic balcony views.",
+    title: "Deluxe Rooms",
+    tagline: "Comfortable & Spacious Stays",
+    desc: "Spacious rooms with comfortable bedding, ensuite bathroom, and balcony views.",
     icon: Sparkles,
     badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
     headerBg: "from-blue-50/80 via-indigo-50/40 to-white",
   },
   SUPER_DELUXE: {
     label: "Super Deluxe",
-    title: "Super Deluxe Panoramic Suites",
-    tagline: "Signature Luxury & Scenic Balcony",
-    desc: "Elevated high-floor retreats with sweeping panoramic vistas, plush lounge seating, and curated artisan amenities.",
+    title: "Super Deluxe Rooms",
+    tagline: "Scenic Views & Extra Space",
+    desc: "Large rooms offering scenic views, comfortable seating area, and upgraded amenities.",
     icon: Award,
     badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
     headerBg: "from-purple-50/80 via-indigo-50/40 to-white",
   },
   FAMILY: {
     label: "Family Suite",
-    title: "Family Suites & Cottages",
-    tagline: "Expansive Layouts for Groups & Families",
-    desc: "Extra-spacious configurations featuring multiple beds, living parlors, and child-safe tranquil environments.",
+    title: "Family Rooms & Suites",
+    tagline: "Spacious Layouts for Families",
+    desc: "Spacious configurations featuring multiple beds and living space, ideal for families.",
     icon: Users,
     badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
     headerBg: "from-emerald-50/80 via-teal-50/40 to-white",
   },
   EXECUTIVE: {
     label: "Executive",
-    title: "Executive Business Club Rooms",
-    tagline: "Premium Work & Leisure Experience",
-    desc: "Designed with high-speed workstation desks, ergonomic chairs, soundproof glass, and exclusive concierge access.",
+    title: "Executive Rooms",
+    tagline: "Comfort & Work Setup",
+    desc: "Equipped with work desk, high-speed Wi-Fi, and a quiet environment for travel and work.",
     icon: Layers,
     badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
     headerBg: "from-amber-50/80 via-orange-50/40 to-white",
   },
   SUITE: {
-    label: "Royal Suite",
-    title: "Palatial Royal Suites",
-    tagline: "Ultra-Premium Master Suites",
-    desc: "Palatial multi-room residences with dedicated living lounges, walk-in closets, and luxury soaking jacuzzi tubs.",
+    label: "Suite",
+    title: "Luxury Suites",
+    tagline: "Master Suites with Living Area",
+    desc: "Multi-room suites with private living space, king bedding, and spacious attached bathroom.",
     icon: Crown,
     badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
     headerBg: "from-rose-50/80 via-pink-50/40 to-white",
   },
   PREMIUM: {
-    label: "Premium Villa",
-    title: "Premium Chalets & Water Villas",
-    tagline: "Elite Waterfront & Mountain Retreats",
-    desc: "Exclusive stand-alone chalets with direct pool/lawn access, customized dining options, and bespoke hospitality.",
+    label: "Premium",
+    title: "Premium Stays & Cottages",
+    tagline: "Quiet & Scenic Locations",
+    desc: "Stand-alone cottages or premium rooms with scenic views and personalized service.",
     icon: Star,
     badgeBg: "bg-violet-50 text-violet-700 border-violet-200",
     headerBg: "from-violet-50/80 via-fuchsia-50/40 to-white",
   },
   STANDARD: {
     label: "Standard",
-    title: "Standard Comfort Rooms",
-    tagline: "Essential Value & Cozy Accommodations",
-    desc: "Crisp, immaculate accommodations equipped with quality bedding, air conditioning, and full modern essentials.",
+    title: "Standard Rooms",
+    tagline: "Essential Value & Comfort",
+    desc: "Clean and cozy rooms equipped with comfortable bedding, air conditioning, and essentials.",
     icon: Bed,
     badgeBg: "bg-slate-100 text-slate-700 border-slate-200",
     headerBg: "from-slate-100/80 via-slate-50 to-white",
@@ -792,7 +792,7 @@ export default function HotelDetailsPage() {
 
                                   <p className="text-xs text-slate-500 line-clamp-2 mb-2.5 leading-relaxed">
                                     {room.description ||
-                                      "Thoughtfully curated space with luxury bedding, modern amenities and serene tranquility."}
+                                      "Spacious and well-maintained room equipped with quality bedding, private bathroom, and modern amenities."}
                                   </p>
 
                                   {/* Real-time Inventory Pill */}
@@ -1344,7 +1344,7 @@ export default function HotelDetailsPage() {
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-100">
                   {viewingRoomModal.description ||
-                    "Indulge in spacious elegance with thoughtfully designed interiors, plush linens, soundproof architecture, and premium bath amenities designed for the modern connoisseur."}
+                    "Comfortable and well-maintained room featuring cozy bedding, private bathroom, air conditioning, and standard in-room amenities."}
                 </p>
               </div>
 

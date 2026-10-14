@@ -8,10 +8,8 @@ const AppError = require("../utils/appError");
 const httpStatus = require("http-status-codes");
 
 class AdminService {
-  // ==================================================
-  // DASHBOARD KPIS & STATS
-  // ==================================================
-  async getDashboardStats(user = null) {
+    // DASHBOARD KPIS & STATS
+    async getDashboardStats(user = null) {
     if (user?.role === ROLES.TRIP_MANAGER) {
       const [
         totalPackages,
@@ -108,10 +106,8 @@ class AdminService {
     };
   }
 
-  // ==================================================
-  // MONTHLY REVENUE AGGREGATION REPORT ($lookup & $group)
-  // ==================================================
-  async getMonthlyRevenueReport() {
+    // MONTHLY REVENUE AGGREGATION REPORT ($lookup & $group)
+    async getMonthlyRevenueReport() {
     const report = await Payment.aggregate([
       { $match: { status: "SUCCESS" } },
       {
@@ -144,10 +140,8 @@ class AdminService {
     return report;
   }
 
-  // ==================================================
-  // POPULAR DESTINATIONS AGGREGATION ($lookup, $project, $group)
-  // ==================================================
-  async getPopularDestinationsReport() {
+    // POPULAR DESTINATIONS AGGREGATION ($lookup, $project, $group)
+    async getPopularDestinationsReport() {
     const report = await Booking.aggregate([
       {
         $match: {
@@ -219,10 +213,8 @@ class AdminService {
     return report;
   }
 
-  // ==================================================
-  // BOOKING STATUS SUMMARY REPORT
-  // ==================================================
-  async getBookingStatusReport() {
+    // BOOKING STATUS SUMMARY REPORT
+    async getBookingStatusReport() {
     const report = await Booking.aggregate([
       {
         $group: {
@@ -246,10 +238,8 @@ class AdminService {
     return report;
   }
 
-  // ==================================================
-  // HOTEL PERFORMANCE REPORT ($lookup with Bookings)
-  // ==================================================
-  async getHotelPerformanceReport() {
+    // HOTEL PERFORMANCE REPORT ($lookup with Bookings)
+    async getHotelPerformanceReport() {
     const report = await Hotel.aggregate([
       {
         $lookup: {
@@ -282,10 +272,8 @@ class AdminService {
     return report;
   }
 
-  // ==================================================
-  // USER MANAGEMENT
-  // ==================================================
-  async getAllUsers(queryParams = {}) {
+    // USER MANAGEMENT
+    async getAllUsers(queryParams = {}) {
     const filter = {};
     if (queryParams.role) filter.role = queryParams.role;
     if (queryParams.status) filter.status = queryParams.status;
@@ -334,10 +322,8 @@ class AdminService {
     return user;
   }
 
-  // ==================================================
-  // ALL BOOKINGS FOR ADMIN / TRIP MANAGER / HOTEL ADMIN
-  // ==================================================
-  async getAllBookings(user = null, queryParams = {}) {
+    // ALL BOOKINGS FOR ADMIN / TRIP MANAGER / HOTEL ADMIN
+    async getAllBookings(user = null, queryParams = {}) {
     const filter = {};
 
     if (user?.role === ROLES.TRIP_MANAGER) {

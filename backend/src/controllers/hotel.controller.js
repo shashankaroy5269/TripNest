@@ -11,11 +11,8 @@ const ApiResponse =
 
 class HotelController {
 
-  // ==================================================
-  // CREATE HOTEL
-  // ==================================================
-
-  createHotel = async (
+    // CREATE HOTEL
+    createHotel = async (
     req,
     res
   ) => {
@@ -46,11 +43,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // GET HOTEL
-  // ==================================================
-
-  getHotel = async (
+    // GET HOTEL
+    getHotel = async (
     req,
     res
   ) => {
@@ -75,11 +69,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // GET MY HOTELS
-  // ==================================================
-
-  getMyHotels = async (
+    // GET MY HOTELS
+    getMyHotels = async (
     req,
     res
   ) => {
@@ -105,11 +96,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // GET ALL HOTELS
-  // ==================================================
-
-  getAllHotels = async (
+    // GET ALL HOTELS
+    getAllHotels = async (
     req,
     res
   ) => {
@@ -138,11 +126,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // UPDATE HOTEL
-  // ==================================================
-
-  updateHotel = async (
+    // UPDATE HOTEL
+    updateHotel = async (
     req,
     res
   ) => {
@@ -173,11 +158,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // APPROVE HOTEL
-  // ==================================================
-
-  approveHotel = async (
+    // APPROVE HOTEL
+    approveHotel = async (
     req,
     res
   ) => {
@@ -206,11 +188,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // REJECT HOTEL
-  // ==================================================
-
-  rejectHotel = async (
+    // REJECT HOTEL
+    rejectHotel = async (
     req,
     res
   ) => {
@@ -239,11 +218,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // BLOCK HOTEL
-  // ==================================================
-
-  blockHotel = async (
+    // BLOCK HOTEL
+    blockHotel = async (
     req,
     res
   ) => {
@@ -268,11 +244,8 @@ class HotelController {
   };
 
 
-  // ==================================================
-  // DELETE HOTEL
-  // ==================================================
-
-  deleteHotel = async (
+    // DELETE HOTEL
+    deleteHotel = async (
     req,
     res
   ) => {
@@ -297,10 +270,7 @@ class HotelController {
     );
   };
 
-  // ==================================================
-// ADD HOTEL IMAGES
-// ==================================================
-
+  // ADD HOTEL IMAGES
 addHotelImages = async (
   req,
   res
@@ -331,10 +301,7 @@ addHotelImages = async (
   );
 };
 
-// ==================================================
 // DELETE HOTEL IMAGE
-// ==================================================
-
 deleteHotelImage = async (
   req,
   res
@@ -366,9 +333,7 @@ deleteHotelImage = async (
   );
 };
 
-// ==================================================
 // UPLOAD IMAGES STANDALONE (PC / FILE UPLOAD)
-// ==================================================
 uploadImagesStandalone = async (
   req,
   res
@@ -392,10 +357,8 @@ uploadImagesStandalone = async (
   );
 };
 
-  // ==================================================
-  // BULK CREATE HOTELS
-  // ==================================================
-  bulkCreateHotels = async (req, res) => {
+    // BULK CREATE HOTELS
+    bulkCreateHotels = async (req, res) => {
     const hotels = req.body.hotels || req.body;
     const result = await hotelService.bulkCreateHotels(
       req.user.userId,

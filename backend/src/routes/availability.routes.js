@@ -39,10 +39,7 @@ const router =
   express.Router();
 
 
-// ==================================================
 // CHECK ROOM AVAILABILITY (PUBLIC)
-// ==================================================
-
 router.get(
   "/check",
   asyncHandler(
@@ -83,10 +80,7 @@ router.get(
 );
 
 
-// ==================================================
 // CALCULATE BOOKING PRICE (PUBLIC)
-// ==================================================
-
 router.post(
 
   "/room/:roomId/calculate-price",
