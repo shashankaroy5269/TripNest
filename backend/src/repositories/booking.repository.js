@@ -144,10 +144,17 @@ class BookingRepository {
     checkIn,
     checkOut
   ) {
+    const roomObjectId =
+      mongoose.Types.ObjectId.isValid(roomId)
+        ? new mongoose.Types.ObjectId(roomId)
+        : roomId;
+
+    const startDate = checkIn instanceof Date ? checkIn : new Date(checkIn);
+    const endDate = checkOut instanceof Date ? checkOut : new Date(checkOut);
 
     return Booking.find({
 
-      room: roomId,
+      room: roomObjectId,
 
       status: {
         $in: [
@@ -157,11 +164,11 @@ class BookingRepository {
       },
 
       checkIn: {
-        $lt: checkOut
+        $lt: endDate
       },
 
       checkOut: {
-        $gt: checkIn
+        $gt: startDate
       }
 
     })
@@ -195,6 +202,13 @@ class BookingRepository {
     checkIn,
     checkOut
   ) {
+    const roomObjectId =
+      mongoose.Types.ObjectId.isValid(roomId)
+        ? new mongoose.Types.ObjectId(roomId)
+        : roomId;
+
+    const startDate = checkIn instanceof Date ? checkIn : new Date(checkIn);
+    const endDate = checkOut instanceof Date ? checkOut : new Date(checkOut);
 
     const result =
       await Booking.aggregate([
@@ -206,7 +220,7 @@ class BookingRepository {
         {
           $match: {
 
-            room: roomId,
+            room: roomObjectId,
 
             status: {
               $in: [
@@ -220,11 +234,11 @@ class BookingRepository {
             // --------------------------------------
 
             checkIn: {
-              $lt: checkOut
+              $lt: endDate
             },
 
             checkOut: {
-              $gt: checkIn
+              $gt: startDate
             }
 
           }
@@ -241,7 +255,7 @@ class BookingRepository {
             _id: null,
 
             bookedRooms: {
-              $sum: "$roomsBooked"
+              $sum: { $ifNull: ["$roomsBooked", 1] }
             }
 
           }
