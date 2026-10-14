@@ -1,0 +1,56 @@
+{
+  "app\\page.js -> ../components/tabs/AggregationsTab": {
+    "id": "app\\page.js -> ../components/tabs/AggregationsTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_AggregationsTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/BookingsTab": {
+    "id": "app\\page.js -> ../components/tabs/BookingsTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_BookingsTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/CouponsTab": {
+    "id": "app\\page.js -> ../components/tabs/CouponsTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_CouponsTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/EnquiriesTab": {
+    "id": "app\\page.js -> ../components/tabs/EnquiriesTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_EnquiriesTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/HotelsTab": {
+    "id": "app\\page.js -> ../components/tabs/HotelsTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_HotelsTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/OverviewTab": {
+    "id": "app\\page.js -> ../components/tabs/OverviewTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_OverviewTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/PackagesTab": {
+    "id": "app\\page.js -> ../components/tabs/PackagesTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_PackagesTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/RoomsTab": {
+    "id": "app\\page.js -> ../components/tabs/RoomsTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_RoomsTab_js.js"
+    ]
+  },
+  "app\\page.js -> ../components/tabs/UsersTab": {
+    "id": "app\\page.js -> ../components/tabs/UsersTab",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_tabs_UsersTab_js.js"
+    ]
+  }
+}
