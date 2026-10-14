@@ -139,6 +139,17 @@ export default function HotelDetailsPage() {
   const [hotelAvailLoading, setHotelAvailLoading] = useState(false);
   const availLoading = hotelAvailLoading;
 
+  const categoriesPresent = React.useMemo(() => {
+    const list = [];
+    (rooms || []).forEach((r) => {
+      const t = r.roomType || "STANDARD";
+      if (!list.includes(t)) {
+        list.push(t);
+      }
+    });
+    return list;
+  }, [rooms]);
+
   const handleCheckInChange = (newVal) => {
     setCheckIn(newVal);
     if (newVal >= checkOut) {
@@ -280,17 +291,6 @@ export default function HotelDetailsPage() {
     Math.round((checkOutD - checkInD) / (1000 * 60 * 60 * 24))
   );
 
-  const categoriesPresent = React.useMemo(() => {
-    const list = [];
-    rooms.forEach((r) => {
-      const t = r.roomType || "STANDARD";
-      if (!list.includes(t)) {
-        list.push(t);
-      }
-    });
-    return list;
-  }, [rooms]);
-
   const selectedRoom = rooms.find((r) => r._id === selectedRoomId) || rooms[0];
   const roomPricePerNight = selectedRoom?.finalPrice || selectedRoom?.pricePerNight || 3500;
   const subtotal = roomPricePerNight * nights * roomsCount;
@@ -359,7 +359,12 @@ export default function HotelDetailsPage() {
     navigate("/checkout");
   };
 
-  const photos = hotel.photos?.length ? hotel.photos : DEFAULT_PHOTOS;
+  const photos =
+    hotel.photos?.length
+      ? hotel.photos
+      : hotel.images?.length
+      ? hotel.images.map((img) => (typeof img === "string" ? img : img.url)).filter(Boolean)
+      : DEFAULT_PHOTOS;
 
   return (
     <div className="min-h-screen bg-slate-50 py-10">
@@ -380,9 +385,15 @@ export default function HotelDetailsPage() {
               {hotel.name}
             </h1>
             <p className="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
-              <MapPin className="w-4 h-4 text-rose-500" />
+              <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
               <span>
-                {hotel.address}, {hotel.city}, {hotel.state}
+                {[
+                  hotel.address || hotel.location?.address,
+                  hotel.city || hotel.location?.city,
+                  hotel.state || hotel.location?.state,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "India"}
               </span>
             </p>
           </div>
