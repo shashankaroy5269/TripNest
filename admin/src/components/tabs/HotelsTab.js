@@ -27,9 +27,16 @@ import {
   ExternalLink,
   Bed,
   Check,
-  ChevronRight,
   AlertTriangle,
   UploadCloud,
+  FileSpreadsheet,
+  Download,
+  CheckSquare,
+  Square,
+  CheckCheck,
+  Info,
+  Crown,
+  Layers,
 } from "lucide-react";
 
 export default function HotelsTab({
@@ -102,120 +109,283 @@ export default function HotelsTab({
     "Bar & Lounge",
   ];
 
-  const demoPresets = [
-    {
-      label: "🏖️ Goa Beach Resort",
-      data: {
-        name: "The Grand Azure Beachfront Resort & Spa",
-        description: "A lavish 5-star oceanfront resort offering private beach access, infinity pool, luxury cabanas, seaside dining, and Ayurvedic wellness therapies.",
-        hotelType: "RESORT",
-        address: "Calangute - Baga Beach Road, North Goa",
-        city: "North Goa",
-        state: "Goa",
-        country: "India",
-        pincode: "403516",
-        phone: "+91 98765 43210",
-        email: "reservations@azurebeachresort.com",
-        latitude: "15.5494",
-        longitude: "73.7535",
-        checkIn: "14:00",
-        checkOut: "11:00",
-        cancellation: "Free cancellation up to 48 hours before check-in. Full refund guaranteed.",
-        childrenAllowed: true,
-        petsAllowed: false,
-        amenities: ["Free Wi-Fi", "Swimming Pool", "Beach Access", "Restaurant", "Spa & Wellness", "Bar & Lounge"],
-        images: [
-          "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&auto=format&fit=crop&q=80"
-        ]
-      }
-    },
-    {
-      label: "🏰 Jaipur Royal Palace",
-      data: {
-        name: "Rajwada Palace Heritage Hotel & Suites",
-        description: "An exquisite royal palace hotel featuring traditional Rajasthani architecture, marble courtyards, luxury royal suites, folk music evenings, and fine rooftop dining.",
-        hotelType: "HOTEL",
-        address: "14 Amer Road, Civil Lines",
-        city: "Jaipur",
-        state: "Rajasthan",
-        country: "India",
-        pincode: "302001",
-        phone: "+91 91234 56789",
-        email: "bookings@rajwadapalace.com",
-        latitude: "26.9124",
-        longitude: "75.7873",
-        checkIn: "13:00",
-        checkOut: "11:00",
-        cancellation: "Free cancellation up to 24 hours before check-in.",
-        childrenAllowed: true,
-        petsAllowed: false,
-        amenities: ["Free Wi-Fi", "Restaurant", "Swimming Pool", "Free Breakfast", "Parking", "24/7 Front Desk"],
-        images: [
-          "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=1200&auto=format&fit=crop&q=80"
-        ]
-      }
-    },
-    {
-      label: "🏔️ Manali Pine Villa",
-      data: {
-        name: "Himalayan Pine Valley Luxury Villa",
-        description: "A scenic cedar-wood luxury villa nestled in the Himalayas with panoramic snow-capped mountain views, indoor fireplace, private garden, and barbecue facilities.",
-        hotelType: "VILLA",
-        address: "Old Manali Road, Near Hadimba Temple",
-        city: "Manali",
-        state: "Himachal Pradesh",
-        country: "India",
-        pincode: "175131",
-        phone: "+91 98112 34567",
-        email: "stay@pinevalleyvilla.com",
-        latitude: "32.2396",
-        longitude: "77.1887",
-        checkIn: "12:00",
-        checkOut: "10:00",
-        cancellation: "Free cancellation up to 72 hours prior to arrival.",
-        childrenAllowed: true,
-        petsAllowed: true,
-        amenities: ["Free Wi-Fi", "Parking", "Free Breakfast", "Air Conditioning", "Balcony View"],
-        images: [
-          "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=1200&auto=format&fit=crop&q=80"
-        ]
-      }
-    },
-    {
-      label: "🌴 Kerala Homestay",
-      data: {
-        name: "Kumarakom Serene Palms Backwater Homestay",
-        description: "An authentic Kerala traditional water-front homestay surrounded by tranquil lagoons and coconut groves with home-cooked Malabar cuisine and boat cruises.",
-        hotelType: "HOMESTAY",
-        address: "Vembanad Lake Front, Kumarakom",
-        city: "Kottayam",
-        state: "Kerala",
-        country: "India",
-        pincode: "686563",
-        phone: "+91 94471 23456",
-        email: "contact@serenepalms.com",
-        latitude: "9.6175",
-        longitude: "76.4301",
-        checkIn: "13:00",
-        checkOut: "11:00",
-        cancellation: "100% refundable if cancelled 48 hours prior.",
-        childrenAllowed: true,
-        petsAllowed: true,
-        amenities: ["Free Wi-Fi", "Free Breakfast", "Restaurant", "Parking", "Air Conditioning"],
-        images: [
-          "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?w=1200&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=1200&auto=format&fit=crop&q=80"
-        ]
+  // Bulk Hotel Import State
+  const [isBulkHotelImportOpen, setIsBulkHotelImportOpen] = useState(false);
+  const [bulkHotelFile, setBulkHotelFile] = useState(null);
+  const [parsedHotelRows, setParsedHotelRows] = useState([]);
+  const [selectedHotelRowIds, setSelectedHotelRowIds] = useState(new Set());
+  const [bulkHotelFilterMode, setBulkHotelFilterMode] = useState("ALL"); // "ALL" | "SELECTED" | "EXCLUDED" | "ERRORS"
+  const [bulkHotelSearch, setBulkHotelSearch] = useState("");
+  const [isBulkHotelSubmitting, setIsBulkHotelSubmitting] = useState(false);
+  const [bulkHotelImportResult, setBulkHotelImportResult] = useState(null);
+
+  // CSV Text Parser supporting quotes, commas, and newlines
+  const parseCSVText = (text) => {
+    const lines = [];
+    let row = [];
+    let inQuotes = false;
+    let currentVal = "";
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentVal += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === "," && !inQuotes) {
+        row.push(currentVal.trim());
+        currentVal = "";
+      } else if ((char === "\r" || char === "\n") && !inQuotes) {
+        if (char === "\r" && nextChar === "\n") {
+          i++;
+        }
+        row.push(currentVal.trim());
+        currentVal = "";
+        if (row.length > 0 && row.some((c) => c !== "")) {
+          lines.push(row);
+        }
+        row = [];
+      } else {
+        currentVal += char;
       }
     }
-  ];
+
+    if (currentVal || row.length > 0) {
+      row.push(currentVal.trim());
+      if (row.some((c) => c !== "")) {
+        lines.push(row);
+      }
+    }
+
+    return lines;
+  };
+
+  const handleBulkHotelFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkHotelFile(file);
+    setBulkHotelImportResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target.result;
+        const matrix = parseCSVText(text);
+
+        if (!matrix || matrix.length < 2) {
+          showToast("CSV file must contain a header row and at least 1 hotel record", "error");
+          return;
+        }
+
+        const header = matrix[0].map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+        const findCol = (keywords) =>
+          header.findIndex((h) => keywords.some((k) => h.includes(k)));
+
+        const nameIdx = findCol(["name", "hotelname", "title", "property"]);
+        const typeIdx = findCol(["type", "hoteltype", "category"]);
+        const descIdx = findCol(["description", "desc", "about"]);
+        const addrIdx = findCol(["address", "street", "location"]);
+        const cityIdx = findCol(["city", "town"]);
+        const stateIdx = findCol(["state", "province"]);
+        const countryIdx = findCol(["country"]);
+        const pincodeIdx = findCol(["pincode", "zip", "postal"]);
+        const phoneIdx = findCol(["phone", "contactphone", "mobile", "tel"]);
+        const emailIdx = findCol(["email", "contactemail", "mail"]);
+        const amenitiesIdx = findCol(["amenities", "facilities", "features"]);
+        const checkInIdx = findCol(["checkin", "checkintime", "in"]);
+        const checkOutIdx = findCol(["checkout", "checkouttime", "out"]);
+        const cancellationIdx = findCol(["cancellation", "cancel", "refund"]);
+
+        const parsed = [];
+        const initialSelected = new Set();
+        const seenNamesInFile = new Set();
+
+        const validTypes = ["HOTEL", "RESORT", "VILLA", "HOMESTAY", "GUEST_HOUSE", "APARTMENT"];
+
+        for (let i = 1; i < matrix.length; i++) {
+          const rowVals = matrix[i];
+          if (!rowVals || rowVals.length === 0 || rowVals.every((c) => !c)) continue;
+
+          const rowNum = i + 1;
+          const rowId = `hotel_row_${rowNum}`;
+
+          const name = nameIdx !== -1 && rowVals[nameIdx] ? rowVals[nameIdx].trim() : `Hotel Row ${rowNum}`;
+          const rawType = typeIdx !== -1 && rowVals[typeIdx] ? rowVals[typeIdx].trim().toUpperCase().replace(/\s+/g, "_") : "HOTEL";
+          const hotelType = validTypes.includes(rawType) ? rawType : "HOTEL";
+          const description = descIdx !== -1 && rowVals[descIdx] ? rowVals[descIdx].trim() : `Experience comfortable accommodations and warm hospitality at ${name}.`;
+          const address = addrIdx !== -1 && rowVals[addrIdx] ? rowVals[addrIdx].trim() : "";
+          const city = cityIdx !== -1 && rowVals[cityIdx] ? rowVals[cityIdx].trim() : "";
+          const state = stateIdx !== -1 && rowVals[stateIdx] ? rowVals[stateIdx].trim() : "State";
+          const country = countryIdx !== -1 && rowVals[countryIdx] ? rowVals[countryIdx].trim() : "India";
+          const pincode = pincodeIdx !== -1 && rowVals[pincodeIdx] ? rowVals[pincodeIdx].trim() : "400001";
+          const phone = phoneIdx !== -1 && rowVals[phoneIdx] ? rowVals[phoneIdx].trim() : "";
+          const email = emailIdx !== -1 && rowVals[emailIdx] ? rowVals[emailIdx].trim() : "";
+          const amenities = amenitiesIdx !== -1 && rowVals[amenitiesIdx] ? rowVals[amenitiesIdx].trim() : "Free Wi-Fi, Parking, Air Conditioning";
+          const checkIn = checkInIdx !== -1 && rowVals[checkInIdx] ? rowVals[checkInIdx].trim() : "14:00";
+          const checkOut = checkOutIdx !== -1 && rowVals[checkOutIdx] ? rowVals[checkOutIdx].trim() : "11:00";
+          const cancellation = cancellationIdx !== -1 && rowVals[cancellationIdx] ? rowVals[cancellationIdx].trim() : "Free cancellation up to 48 hours before check-in.";
+
+          // Validation
+          const errors = [];
+          if (!name || name.length < 3) errors.push("Name must be at least 3 characters");
+          if (!city) errors.push("City is required");
+          if (!address) errors.push("Address is required");
+
+          const dupKey = `${name.toLowerCase()}:::${city.toLowerCase()}`;
+          const isDupInFile = seenNamesInFile.has(dupKey);
+          if (isDupInFile) {
+            errors.push("Duplicate hotel in file (same name & city)");
+          }
+          seenNamesInFile.add(dupKey);
+
+          const isDupExisting = (hotels || []).some(
+            (h) =>
+              (h.name || "").toLowerCase() === name.toLowerCase() &&
+              (h.location?.city || h.city || "").toLowerCase() === city.toLowerCase()
+          );
+          if (isDupExisting) {
+            errors.push("Hotel already exists in database");
+          }
+
+          const isValid = errors.length === 0;
+
+          parsed.push({
+            id: rowId,
+            originalRowNumber: rowNum,
+            name,
+            hotelType,
+            description,
+            address,
+            city,
+            state,
+            country,
+            pincode,
+            phone,
+            email,
+            amenities,
+            checkIn,
+            checkOut,
+            cancellation,
+            isValid,
+            errors,
+            isDuplicate: isDupInFile || isDupExisting,
+          });
+
+          if (isValid) {
+            initialSelected.add(rowId);
+          }
+        }
+
+        setParsedHotelRows(parsed);
+        setSelectedHotelRowIds(initialSelected);
+        showToast(`Loaded ${parsed.length} hotel records from CSV!`, "success");
+      } catch (err) {
+        console.error("Error parsing CSV:", err);
+        showToast("Failed to parse CSV file. Please check format.", "error");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const toggleHotelRowSelection = (rowId) => {
+    setSelectedHotelRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowId)) {
+        next.delete(rowId);
+      } else {
+        next.add(rowId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllHotels = () => {
+    const allIds = new Set(parsedHotelRows.map((r) => r.id));
+    setSelectedHotelRowIds(allIds);
+  };
+
+  const handleDeselectAllHotels = () => {
+    setSelectedHotelRowIds(new Set());
+  };
+
+  const handleSelectAllValidHotels = () => {
+    const validIds = new Set(
+      parsedHotelRows.filter((r) => r.isValid && !r.isDuplicate).map((r) => r.id)
+    );
+    setSelectedHotelRowIds(validIds);
+  };
+
+  const handleDownloadSampleHotelCSV = () => {
+    const csvUrl = "/sample_hotels.csv";
+    const link = document.createElement("a");
+    link.href = csvUrl;
+    link.setAttribute("download", "sample_hotels.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Downloaded sample_hotels.csv template!", "success");
+  };
+
+  const handleBulkHotelSubmit = async () => {
+    const selectedRowsList = parsedHotelRows.filter((r) => selectedHotelRowIds.has(r.id));
+    if (selectedRowsList.length === 0) {
+      showToast("No hotels selected! Please check at least one hotel row to import.", "error");
+      return;
+    }
+
+    setIsBulkHotelSubmitting(true);
+    setBulkHotelImportResult(null);
+
+    try {
+      const payload = selectedRowsList.map((r) => ({
+        name: r.name,
+        hotelType: r.hotelType,
+        description: r.description,
+        address: r.address,
+        city: r.city,
+        state: r.state,
+        country: r.country,
+        pincode: r.pincode,
+        phone: r.phone,
+        email: r.email,
+        amenities: r.amenities,
+        checkIn: r.checkIn,
+        checkOut: r.checkOut,
+        cancellation: r.cancellation,
+        originalRow: r.originalRowNumber,
+      }));
+
+      const res = await hotelApi.bulkCreateHotels(payload);
+      const resultData = res?.data || res;
+      setBulkHotelImportResult(resultData);
+
+      showToast(
+        `Successfully imported ${resultData.insertedCount || selectedRowsList.length} hotel properties!`,
+        "success"
+      );
+
+      // Refresh hotels
+      if (onRefresh) onRefresh();
+
+      // Clear imported selection
+      setSelectedHotelRowIds(new Set());
+    } catch (err) {
+      console.error("Bulk hotel import failed:", err);
+      showToast(
+        typeof err === "string" ? err : err.message || "Bulk hotel import failed",
+        "error"
+      );
+    } finally {
+      setIsBulkHotelSubmitting(false);
+    }
+  };
 
   const isMyHotel = (h) => {
     if (!user) return false;
@@ -532,13 +702,25 @@ export default function HotelsTab({
             })}
           </div>
 
-          <button
-            onClick={() => setIsAddHotelOpen(true)}
-            className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Register Hotel</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                setIsBulkHotelImportOpen(true);
+                setBulkHotelImportResult(null);
+              }}
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Bulk Import CSV / Excel</span>
+            </button>
+            <button
+              onClick={() => setIsAddHotelOpen(true)}
+              className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Register Hotel</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1165,30 +1347,33 @@ export default function HotelsTab({
               Submit comprehensive hotel property information, contact details, geolocation coordinates, policies, and photos.
             </p>
 
-            {/* Quick Demo Data Preset Filler */}
-            <div className="mb-5 p-3 rounded-2xl bg-purple-50/70 border border-purple-200/80">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-[#5B30D9] flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Quick-Fill Sample Data:
-                </span>
-                <span className="text-[10px] text-slate-500">Click any preset to auto-fill</span>
+            {/* CSV / Excel Bulk Upload Banner */}
+            <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-emerald-950 block">
+                    Have multiple hotels to onboard?
+                  </span>
+                  <span className="text-[11px] text-emerald-700">
+                    Upload an Excel or CSV file to register multiple hotel properties at once.
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {demoPresets.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setNewHotel({ ...preset.data });
-                      showToast(`Filled: ${preset.label}`, "info");
-                    }}
-                    className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#5B30D9] text-slate-700 hover:text-white text-[11px] font-bold border border-purple-200/80 transition shadow-xs"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddHotelOpen(false);
+                  setIsBulkHotelImportOpen(true);
+                  setBulkHotelImportResult(null);
+                }}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm transition flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                <UploadCloud className="w-3.5 h-3.5" />
+                <span>Upload CSV / Excel</span>
+              </button>
             </div>
 
             <form onSubmit={handleCreateHotel} className="space-y-4 text-xs">
@@ -1525,6 +1710,357 @@ export default function HotelsTab({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      {/* ================================================== */}
+      {/* BULK HOTEL IMPORT MODAL (CSV / EXCEL) */}
+      {/* ================================================== */}
+      {isBulkHotelImportOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[94vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-sm">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900">
+                      Bulk Hotel Property Registration &amp; Flexible Selection
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-[#5B30D9]">
+                      CSV / Excel
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Upload your hotel catalog to inspect, validate, and onboard multiple accommodations in bulk.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadSampleHotelCSV}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition"
+                  title="Download Sample Hotel CSV Template"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Download Sample CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsBulkHotelImportOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+              {/* File Upload Zone */}
+              <div className="border-2 border-dashed border-slate-200 hover:border-emerald-400 rounded-3xl p-5 text-center transition bg-slate-50/50 hover:bg-emerald-50/20 group">
+                <input
+                  type="file"
+                  id="bulkHotelFileInput"
+                  accept=".csv,.txt,.xlsx,.xls"
+                  onChange={handleBulkHotelFileUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="bulkHotelFileInput"
+                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 group-hover:bg-emerald-200 text-emerald-700 flex items-center justify-center transition">
+                    <UploadCloud className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 block">
+                      {bulkHotelFile ? bulkHotelFile.name : "Click to browse or drop your Hotel CSV file here"}
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      Supports .csv or .xlsx (format: name, hotelType, description, address, city, state, country, pincode, phone, email, amenities)
+                    </span>
+                  </div>
+                  {bulkHotelFile && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full mt-1">
+                      <CheckCircle2 className="w-3 h-3" /> File loaded ({parsedHotelRows.length} rows detected)
+                    </span>
+                  )}
+                </label>
+              </div>
+
+              {/* Success Result Banner */}
+              {bulkHotelImportResult && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between gap-3 animate-fadeIn">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold">
+                        Successfully imported {bulkHotelImportResult.insertedCount || 0} hotel properties!
+                      </div>
+                      <div className="text-[11px] text-emerald-700 mt-0.5">
+                        Hotels have been added and registered under your account. You can now configure rooms for them.
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBulkHotelImportOpen(false);
+                      setBulkHotelImportResult(null);
+                    }}
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shrink-0"
+                  >
+                    Close &amp; View Hotels
+                  </button>
+                </div>
+              )}
+
+              {/* Data Table Preview & Selection */}
+              {parsedHotelRows.length > 0 && (
+                <div className="space-y-4">
+                  {/* Stats & Selection Controls Toolbar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-bold text-slate-800">
+                        {selectedHotelRowIds.size} of {parsedHotelRows.length} Selected
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={handleSelectAllHotels}
+                        className="text-xs font-bold text-[#5B30D9] hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={handleDeselectAllHotels}
+                        className="text-xs font-bold text-slate-600 hover:underline"
+                      >
+                        Deselect All
+                      </button>
+                      <span className="text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={handleSelectAllValidHotels}
+                        className="text-xs font-bold text-emerald-600 hover:underline"
+                      >
+                        Select Valid Only
+                      </button>
+                    </div>
+
+                    {/* Filter Mode & Search */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
+                        {["ALL", "SELECTED", "EXCLUDED", "ERRORS"].map((mode) => {
+                          const count =
+                            mode === "ALL"
+                              ? parsedHotelRows.length
+                              : mode === "SELECTED"
+                              ? selectedHotelRowIds.size
+                              : mode === "EXCLUDED"
+                              ? parsedHotelRows.length - selectedHotelRowIds.size
+                              : parsedHotelRows.filter((r) => !r.isValid || r.isDuplicate).length;
+
+                          return (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => setBulkHotelFilterMode(mode)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 ${
+                                bulkHotelFilterMode === mode
+                                  ? "bg-[#5B30D9] text-white"
+                                  : "text-slate-600 hover:text-slate-900"
+                              }`}
+                            >
+                              <span>{mode}</span>
+                              <span
+                                className={`text-[9px] px-1 rounded-full ${
+                                  bulkHotelFilterMode === mode
+                                    ? "bg-white/20 text-white"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                {count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search hotels..."
+                          value={bulkHotelSearch}
+                          onChange={(e) => setBulkHotelSearch(e.target.value)}
+                          className="pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-36 sm:w-48"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Table */}
+                  <div className="border border-slate-200 rounded-2xl overflow-hidden max-h-96 overflow-y-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-bold border-b border-slate-200 sticky top-0 z-10">
+                        <tr>
+                          <th className="p-3 w-10 text-center">
+                            <input
+                              type="checkbox"
+                              checked={
+                                parsedHotelRows.length > 0 &&
+                                selectedHotelRowIds.size === parsedHotelRows.length
+                              }
+                              onChange={(e) => {
+                                if (e.target.checked) handleSelectAllHotels();
+                                else handleDeselectAllHotels();
+                              }}
+                              className="w-4 h-4 rounded text-[#5B30D9] accent-[#5B30D9] cursor-pointer"
+                            />
+                          </th>
+                          <th className="p-3 w-14">Row</th>
+                          <th className="p-3">Hotel Property Name</th>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Location</th>
+                          <th className="p-3">Contact</th>
+                          <th className="p-3">Status / Validation</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {parsedHotelRows
+                          .filter((row) => {
+                            if (bulkHotelFilterMode === "SELECTED" && !selectedHotelRowIds.has(row.id)) return false;
+                            if (bulkHotelFilterMode === "EXCLUDED" && selectedHotelRowIds.has(row.id)) return false;
+                            if (bulkHotelFilterMode === "ERRORS" && row.isValid && !row.isDuplicate) return false;
+                            if (bulkHotelSearch) {
+                              const q = bulkHotelSearch.toLowerCase().trim();
+                              const matchName = (row.name || "").toLowerCase().includes(q);
+                              const matchCity = (row.city || "").toLowerCase().includes(q);
+                              const matchType = (row.hotelType || "").toLowerCase().includes(q);
+                              if (!matchName && !matchCity && !matchType) return false;
+                            }
+                            return true;
+                          })
+                          .map((r) => {
+                            const isSelected = selectedHotelRowIds.has(r.id);
+                            return (
+                              <tr
+                                key={r.id}
+                                className={`transition ${
+                                  isSelected ? "bg-purple-50/40" : "hover:bg-slate-50/70"
+                                }`}
+                              >
+                                <td className="p-3 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleHotelRowSelection(r.id)}
+                                    className="w-4 h-4 rounded text-[#5B30D9] accent-[#5B30D9] cursor-pointer"
+                                  />
+                                </td>
+                                <td className="p-3 font-mono text-[11px] text-slate-400">
+                                  #{r.originalRowNumber}
+                                </td>
+                                <td className="p-3">
+                                  <span className="font-bold text-slate-900 block">{r.name}</span>
+                                  {r.description && (
+                                    <span className="text-[10px] text-slate-400 line-clamp-1">
+                                      {r.description}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3">
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-[#5B30D9] border border-purple-200">
+                                    {r.hotelType}
+                                  </span>
+                                </td>
+                                <td className="p-3">
+                                  <span className="text-slate-800 font-medium block">
+                                    {r.city}, {r.state}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 truncate block max-w-xs">
+                                    {r.address}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-[11px] text-slate-600">
+                                  {r.phone && <div>{r.phone}</div>}
+                                  {r.email && <div className="text-slate-400 text-[10px]">{r.email}</div>}
+                                </td>
+                                <td className="p-3">
+                                  {r.isValid && !r.isDuplicate ? (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                      Valid
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 cursor-help"
+                                      title={r.errors?.join("; ") || "Invalid data"}
+                                    >
+                                      <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                      {r.errors?.[0] || "Invalid"}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+              <span className="text-xs text-slate-500">
+                {selectedHotelRowIds.size > 0 ? (
+                  <>
+                    Ready to import <strong className="text-slate-800 font-bold">{selectedHotelRowIds.size}</strong> hotel properties into your account.
+                  </>
+                ) : (
+                  "Select at least 1 hotel to proceed with import."
+                )}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkHotelImportOpen(false)}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-200 text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBulkHotelSubmit}
+                  disabled={isBulkHotelSubmitting || selectedHotelRowIds.size === 0}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isBulkHotelSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Importing Hotels...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>Import {selectedHotelRowIds.size} Selected Hotel(s)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

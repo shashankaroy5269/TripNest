@@ -392,6 +392,24 @@ uploadImagesStandalone = async (
   );
 };
 
+  // ==================================================
+  // BULK CREATE HOTELS
+  // ==================================================
+  bulkCreateHotels = async (req, res) => {
+    const hotels = req.body.hotels || req.body;
+    const result = await hotelService.bulkCreateHotels(
+      req.user.userId,
+      req.user.role,
+      hotels
+    );
+
+    return ApiResponse.success(res, {
+      statusCode: 201,
+      message: `Successfully imported ${result.insertedCount} hotel(s)`,
+      data: result,
+    });
+  };
+
 }
 
 

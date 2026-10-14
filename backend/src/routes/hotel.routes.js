@@ -83,6 +83,22 @@ router.post(
 
 
 // ==================================================
+// BULK CREATE HOTELS
+// HOTEL_ADMIN / SUPER_ADMIN
+// ==================================================
+
+router.post(
+  "/bulk",
+  authenticate,
+  authorize(
+    ROLES.HOTEL_ADMIN,
+    ROLES.SUPER_ADMIN
+  ),
+  asyncHandler(
+    hotelController.bulkCreateHotels
+  )
+);
+
 // MY HOTELS
 // HOTEL_ADMIN / SUPER_ADMIN
 // ==================================================

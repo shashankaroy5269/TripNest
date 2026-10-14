@@ -182,6 +182,8 @@ export const hotelApi = {
     }),
   bulkCreateRooms: (hotelId, rooms) =>
     axiosAdmin.post(`/rooms/hotel/${hotelId}/bulk`, { rooms }),
+  bulkCreateHotels: (hotels) =>
+    axiosAdmin.post("/hotels/bulk", { hotels }),
 };
 
 export const availabilityApi = {

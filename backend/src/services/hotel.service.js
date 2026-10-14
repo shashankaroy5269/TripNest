@@ -1022,6 +1022,144 @@ async deleteHotelImage(
 
     return uploadedImages;
   }
+
+  // ==================================================
+  // BULK CREATE HOTELS
+  // ==================================================
+
+  async bulkCreateHotels(ownerId, userRole, hotelsArray) {
+    if (!Array.isArray(hotelsArray) || hotelsArray.length === 0) {
+      throw new AppError("No hotel records provided for bulk import", httpStatus.StatusCodes.BAD_REQUEST);
+    }
+
+    const defaultImages = [
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&auto=format&fit=crop&q=80"
+    ];
+
+    const validHotelsToInsert = [];
+    const errors = [];
+    const seenNames = new Set();
+
+    for (let i = 0; i < hotelsArray.length; i++) {
+      const h = hotelsArray[i];
+      const rowNum = h.originalRow || i + 2;
+
+      const name = (h.name || "").trim();
+      if (!name || name.length < 3) {
+        errors.push({ row: rowNum, error: "Hotel name must be at least 3 characters." });
+        continue;
+      }
+
+      const city = (h.city || "").trim();
+      if (!city) {
+        errors.push({ row: rowNum, error: "City is required." });
+        continue;
+      }
+
+      const address = (h.address || "").trim();
+      if (!address) {
+        errors.push({ row: rowNum, error: "Street address is required." });
+        continue;
+      }
+
+      const state = (h.state || "").trim() || "State";
+      const key = `${name.toLowerCase()}:::${city.toLowerCase()}`;
+
+      if (seenNames.has(key)) {
+        errors.push({ row: rowNum, error: `Duplicate hotel in file: "${name}" in ${city}.` });
+        continue;
+      }
+      seenNames.add(key);
+
+      // Check if already in database
+      const existing = await hotelRepository.findByNameAndCity(name, city);
+      if (existing) {
+        errors.push({ row: rowNum, error: `Hotel "${name}" in ${city} already exists in database.` });
+        continue;
+      }
+
+      // Amenities parsing
+      let amenitiesList = [];
+      if (Array.isArray(h.amenities)) {
+        amenitiesList = h.amenities.map(a => String(a).trim()).filter(Boolean);
+      } else if (typeof h.amenities === "string" && h.amenities.trim()) {
+        amenitiesList = h.amenities.split(",").map(a => a.trim()).filter(Boolean);
+      }
+      if (amenitiesList.length === 0) {
+        amenitiesList = ["Free Wi-Fi", "Air Conditioning", "Parking", "24/7 Front Desk"];
+      }
+
+      // Valid hotel types
+      const validTypes = ["HOTEL", "RESORT", "VILLA", "HOMESTAY", "GUEST_HOUSE", "APARTMENT"];
+      const rawType = (h.hotelType || "HOTEL").toUpperCase().replace(/\s+/g, "_");
+      const hotelType = validTypes.includes(rawType) ? rawType : "HOTEL";
+
+      const description = (h.description || "").trim().length >= 20
+        ? h.description.trim()
+        : `A distinguished ${hotelType.toLowerCase()} accommodation offering comfortable stays and attentive guest services at ${name}, ${city}.`;
+
+      // Images
+      let imgArray = [];
+      if (Array.isArray(h.images) && h.images.length > 0) {
+        imgArray = h.images.map((img, idx) =>
+          typeof img === "string"
+            ? { url: img, publicId: `bulk_hotel_img_${Date.now()}_${idx}` }
+            : img
+        );
+      } else {
+        imgArray = defaultImages.map((url, idx) => ({
+          url,
+          publicId: `default_bulk_hotel_${Date.now()}_${idx}`
+        }));
+      }
+
+      validHotelsToInsert.push({
+        name,
+        description,
+        hotelType,
+        owner: ownerId,
+        location: {
+          address,
+          city,
+          state,
+          country: (h.country || "India").trim(),
+          pincode: (h.pincode || "400001").trim(),
+          coordinates: {
+            latitude: h.latitude ? Number(h.latitude) : undefined,
+            longitude: h.longitude ? Number(h.longitude) : undefined,
+          }
+        },
+        contact: {
+          phone: (h.phone || "").trim(),
+          email: (h.email || "").toLowerCase().trim()
+        },
+        amenities: amenitiesList,
+        policies: {
+          checkIn: (h.checkIn || "14:00").trim(),
+          checkOut: (h.checkOut || "11:00").trim(),
+          cancellation: (h.cancellation || "Free cancellation up to 48 hours before check-in.").trim(),
+          childrenAllowed: h.childrenAllowed !== undefined ? Boolean(h.childrenAllowed) : true,
+          petsAllowed: h.petsAllowed !== undefined ? Boolean(h.petsAllowed) : false,
+        },
+        images: imgArray,
+        status: HOTEL_STATUS.APPROVED,
+      });
+    }
+
+    let insertedHotels = [];
+    if (validHotelsToInsert.length > 0) {
+      insertedHotels = await hotelRepository.insertMany(validHotelsToInsert);
+    }
+
+    return {
+      totalReceived: hotelsArray.length,
+      insertedCount: insertedHotels.length,
+      errors,
+      insertedHotels,
+    };
+  }
 }
 
 

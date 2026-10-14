@@ -75,7 +75,16 @@ class HotelRepository {
     );
   }
 
- 
+  async insertMany(hotels) {
+    return Hotel.insertMany(hotels);
+  }
+
+  async findByNameAndCity(name, city) {
+    return Hotel.findOne({
+      name: new RegExp(`^${name.trim()}$`, "i"),
+      "location.city": new RegExp(`^${city.trim()}$`, "i"),
+    });
+  }
 }
 
 module.exports =
