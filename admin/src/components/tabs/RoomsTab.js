@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { hotelApi, availabilityApi } from "../../lib/api";
+import { useAuth } from "../../lib/authContext";
 import { useToast } from "../Toast";
 import {
   Hotel,
@@ -35,16 +36,43 @@ import {
   RefreshCw,
   Eye,
   CheckCheck,
+  Crown,
+  Lock,
+  Building2,
 } from "lucide-react";
 
 export default function RoomsTab({ hotels = [], initialHotelId = null }) {
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [propertyScope, setPropertyScope] = useState("ALL"); // "ALL" | "MY_PROPERTIES"
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingRoomId, setDeletingRoomId] = useState(null);
+
+  // Property Ownership Helpers
+  const isMyHotel = (h) => {
+    if (!user || !h) return false;
+    const currentUserId = String(user._id || user.id || user.userId || "");
+    const currentUserEmail = (user.email || "").toLowerCase().trim();
+
+    const ownerId = h.owner
+      ? String(h.owner._id || h.owner.id || (typeof h.owner === "string" ? h.owner : ""))
+      : "";
+    const ownerEmail = (h.owner?.email || "").toLowerCase().trim();
+    const contactEmail = (h.contact?.email || "").toLowerCase().trim();
+
+    if (currentUserId && ownerId && currentUserId === ownerId) return true;
+    if (currentUserEmail && (ownerEmail === currentUserEmail || contactEmail === currentUserEmail)) return true;
+    return false;
+  };
+
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const myHotels = (hotels || []).filter(isMyHotel);
+  const otherHotels = (hotels || []).filter((h) => !isMyHotel(h));
+  const isOwnerOfSelected = isSuperAdmin || (selectedHotel && isMyHotel(selectedHotel));
 
   // 7.2 Date-Based Availability Inspector State
   const [inspectRoomId, setInspectRoomId] = useState("");
@@ -102,7 +130,7 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
     "Complimentary Breakfast",
   ];
 
-  // Set default selected hotel
+  // Set default selected hotel (prioritize user's owned hotel)
   useEffect(() => {
     if (hotels && hotels.length > 0) {
       if (initialHotelId) {
@@ -113,10 +141,11 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
         }
       }
       if (!selectedHotel) {
-        setSelectedHotel(hotels[0]);
+        const owned = hotels.find(isMyHotel);
+        setSelectedHotel(owned || hotels[0]);
       }
     }
-  }, [hotels, initialHotelId]);
+  }, [hotels, initialHotelId, user]);
 
   // Load rooms when selected hotel changes
   useEffect(() => {
@@ -154,6 +183,13 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
   const handleCreateRoom = async (e) => {
     e.preventDefault();
     if (!selectedHotel) return;
+    if (!isOwnerOfSelected) {
+      showToast(
+        `Cannot add rooms: "${selectedHotel.name}" belongs to another owner. Please select your own property.`,
+        "error"
+      );
+      return;
+    }
     setIsSubmitting(true);
     try {
       const bPrice = Number(newRoom.basePrice);
@@ -225,6 +261,13 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
   };
 
   const handleDeleteRoom = async (roomId) => {
+    if (!isOwnerOfSelected) {
+      showToast(
+        `Cannot delete room: "${selectedHotel?.name}" belongs to another owner.`,
+        "error"
+      );
+      return;
+    }
     if (!confirm("Are you sure you want to delete this room type? Existing bookings for this room will remain.")) return;
     setDeletingRoomId(roomId);
     try {
@@ -611,6 +654,14 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
       return;
     }
 
+    if (!isOwnerOfSelected) {
+      showToast(
+        `Cannot import rooms: "${selectedHotel.name}" belongs to another owner. Please select your own property.`,
+        "error"
+      );
+      return;
+    }
+
     const selectedRowsList = parsedRows.filter((r) => selectedRowIds.has(r.id));
     if (selectedRowsList.length === 0) {
       showToast("No rows selected! Please check at least one row checkbox to import.", "error");
@@ -679,19 +730,54 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             <button
               onClick={() => {
+                if (!isOwnerOfSelected) {
+                  showToast(
+                    `Cannot bulk import: "${selectedHotel.name}" belongs to another owner. Please select your own property.`,
+                    "warning"
+                  );
+                  return;
+                }
                 setIsBulkImportOpen(true);
                 setBulkImportResult(null);
               }}
-              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 ${
+                isOwnerOfSelected
+                  ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300"
+                  : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-75"
+              }`}
+              title={
+                isOwnerOfSelected
+                  ? "Bulk Import CSV / Excel"
+                  : `Restricted: "${selectedHotel.name}" is not your property`
+              }
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileSpreadsheet className={`w-4 h-4 ${isOwnerOfSelected ? "text-emerald-600" : "text-slate-400"}`} />
               <span>Bulk Import CSV / Excel</span>
+              {!isOwnerOfSelected && <Lock className="w-3.5 h-3.5 text-slate-400" />}
             </button>
             <button
-              onClick={() => setIsAddRoomOpen(true)}
-              className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-1.5"
+              onClick={() => {
+                if (!isOwnerOfSelected) {
+                  showToast(
+                    `Cannot add room: "${selectedHotel.name}" belongs to another owner. Please select your own property.`,
+                    "warning"
+                  );
+                  return;
+                }
+                setIsAddRoomOpen(true);
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                isOwnerOfSelected
+                  ? "bg-[#5B30D9] hover:bg-[#4C24B8] text-white shadow-md shadow-[#5B30D9]/25"
+                  : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-75"
+              }`}
+              title={
+                isOwnerOfSelected
+                  ? "Add Room Type"
+                  : `Restricted: "${selectedHotel.name}" is not your property`
+              }
             >
-              <Plus className="w-4 h-4" />
+              {isOwnerOfSelected ? <Plus className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5 text-slate-400" />}
               <span>Add Room Type</span>
             </button>
           </div>
@@ -699,49 +785,261 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
       </div>
 
       {hotels && hotels.length > 0 ? (
-        <div className="space-y-6">
-          {/* Active Managed Property Switcher Bar */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200/80 text-[#5B30D9] flex items-center justify-center shrink-0">
-                <Hotel className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                  Active Managed Property
-                </span>
-                <span className="text-sm font-bold text-slate-900">
-                  {selectedHotel?.name}
-                </span>
-                <span className="text-xs text-slate-500 ml-2">
-                  ({selectedHotel?.location?.city || selectedHotel?.city}, {selectedHotel?.hotelType || "HOTEL"})
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold hidden md:inline">
-                Switch Property:
-              </span>
-              <select
-                value={selectedHotel?._id || ""}
-                onChange={(e) => {
-                  const found = hotels.find((h) => h._id === e.target.value);
-                  if (found) {
-                    setSelectedHotel(found);
+        <div className="space-y-4">
+          {/* Property Scope Filter & Ownership Indicators */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setPropertyScope("MY_PROPERTIES");
+                  if (myHotels.length > 0 && !isMyHotel(selectedHotel)) {
+                    setSelectedHotel(myHotels[0]);
                     setAvailabilityResult(null);
                   }
                 }}
-                className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-[#5B30D9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5B30D9]/25"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  propertyScope === "MY_PROPERTIES"
+                    ? "bg-white text-[#5B30D9] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
               >
-                {hotels.map((h) => (
-                  <option key={h._id} value={h._id}>
-                    {h.name} — {h.location?.city || h.city} ({h.status || "PENDING"})
-                  </option>
-                ))}
-              </select>
+                <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                <span>My Properties</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    propertyScope === "MY_PROPERTIES"
+                      ? "bg-purple-100 text-[#5B30D9]"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {myHotels.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPropertyScope("ALL")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  propertyScope === "ALL"
+                    ? "bg-white text-[#5B30D9] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>All Platform Properties</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    propertyScope === "ALL"
+                      ? "bg-purple-100 text-[#5B30D9]"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {hotels.length}
+                </span>
+              </button>
             </div>
+
+            {myHotels.length > 0 ? (
+              <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>
+                  Logged in as <strong className="text-slate-800">{user?.name || "Property Owner"}</strong> ({myHotels.length} {myHotels.length === 1 ? "property" : "properties"} owned)
+                </span>
+              </div>
+            ) : (
+              <div className="text-xs text-slate-400 italic">
+                No owned properties assigned to your account
+              </div>
+            )}
           </div>
+
+          {/* Active Managed Property Switcher Bar */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 flex flex-col gap-3.5 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+                    isMyHotel(selectedHotel)
+                      ? "bg-purple-50 border-purple-200 text-[#5B30D9]"
+                      : isSuperAdmin
+                      ? "bg-blue-50 border-blue-200 text-blue-600"
+                      : "bg-amber-50 border-amber-200 text-amber-700"
+                  }`}
+                >
+                  {isMyHotel(selectedHotel) ? (
+                    <Crown className="w-6 h-6 text-amber-500 fill-amber-500" />
+                  ) : (
+                    <Hotel className="w-6 h-6" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                      Active Managed Property
+                    </span>
+                    {isMyHotel(selectedHotel) ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>👑 YOUR PROPERTY (OWNER)</span>
+                      </span>
+                    ) : isSuperAdmin ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                        <ShieldCheck className="w-3 h-3 text-blue-600" />
+                        <span>SUPER ADMIN GLOBAL ACCESS</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                        <Lock className="w-3 h-3 text-amber-600" />
+                        <span>OTHER OWNER'S PROPERTY (VIEW ONLY)</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-0.5">
+                    <span className="text-base font-bold text-slate-900">
+                      {selectedHotel?.name}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      ({selectedHotel?.location?.city || selectedHotel?.city}, {selectedHotel?.hotelType || "HOTEL"})
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Property Selector Dropdown with Ownership Optgroups */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold hidden md:inline">
+                  Switch Property:
+                </span>
+                <select
+                  value={selectedHotel?._id || ""}
+                  onChange={(e) => {
+                    const found = hotels.find((h) => h._id === e.target.value);
+                    if (found) {
+                      setSelectedHotel(found);
+                      setAvailabilityResult(null);
+                    }
+                  }}
+                  className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-[#5B30D9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5B30D9]/25 max-w-full sm:max-w-md"
+                >
+                  {propertyScope === "MY_PROPERTIES" ? (
+                    myHotels.length > 0 ? (
+                      myHotels.map((h) => (
+                        <option key={h._id} value={h._id}>
+                          👑 [MY PROPERTY] {h.name} — {h.location?.city || h.city} ({h.status || "APPROVED"})
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No owned properties found</option>
+                    )
+                  ) : (
+                    <>
+                      {myHotels.length > 0 && (
+                        <optgroup label="👑 My Properties (You are the Owner)">
+                          {myHotels.map((h) => (
+                            <option key={h._id} value={h._id}>
+                              ⭐ [MY PROPERTY] {h.name} — {h.location?.city || h.city} ({h.status || "APPROVED"})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {otherHotels.length > 0 && (
+                        <optgroup
+                          label={
+                            myHotels.length > 0
+                              ? "🏢 Other Platform Properties (View Only)"
+                              : "🏢 All Properties"
+                          }
+                        >
+                          {otherHotels.map((h) => (
+                            <option key={h._id} value={h._id}>
+                              {h.name} — {h.location?.city || h.city} ({h.status || "APPROVED"})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* Quick-Switch Chips for My Properties */}
+            {myHotels.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 shrink-0">
+                  <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                  Your Properties:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {myHotels.map((h) => {
+                    const isCurrent = selectedHotel?._id === h._id;
+                    return (
+                      <button
+                        key={h._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedHotel(h);
+                          setAvailabilityResult(null);
+                        }}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                          isCurrent
+                            ? "bg-[#5B30D9] text-white shadow-sm"
+                            : "bg-purple-50 hover:bg-purple-100 text-[#5B30D9] border border-purple-200"
+                        }`}
+                      >
+                        <span>👑 {h.name}</span>
+                        {isCurrent ? (
+                          <span className="text-[9px] bg-white/25 text-white font-extrabold px-1.5 py-0.2 rounded-md">
+                            Selected
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-purple-600">
+                            ({h.location?.city || h.city})
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* View-Only Alert Banner when viewing another owner's property */}
+          {!isOwnerOfSelected && (
+            <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 animate-fadeIn">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-xs font-bold text-amber-900 flex items-center gap-2">
+                    <span>View-Only Mode: You are viewing another owner's property</span>
+                    <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.2 rounded font-extrabold">
+                      READ ONLY
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 mt-0.5">
+                    "{selectedHotel?.name}" is owned by{" "}
+                    <strong>{selectedHotel?.owner?.name || selectedHotel?.owner?.email || "another partner"}</strong>.
+                    You can inspect real-time room availability, but adding or modifying rooms is restricted to this hotel's owner.
+                  </p>
+                </div>
+              </div>
+              {myHotels.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedHotel(myHotels[0]);
+                    setAvailabilityResult(null);
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-[#5B30D9] hover:from-purple-700 hover:to-[#4C24B8] text-white rounded-xl text-xs font-bold shrink-0 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                  <span>Switch to My Property ({myHotels[0].name})</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* ========================================================= */}
           {/* 7.2 DATE-BASED AVAILABILITY INSPECTOR (Interactive Panel) */}
@@ -962,9 +1260,22 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                   </h3>
                 </div>
 
-                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full">
-                  {selectedHotel.status || "APPROVED"}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isMyHotel(selectedHotel) ? (
+                    <span className="px-2.5 py-1 bg-purple-50 text-[#5B30D9] border border-purple-200 text-xs font-bold rounded-full flex items-center gap-1">
+                      <Crown className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      <span>Your Hotel</span>
+                    </span>
+                  ) : !isSuperAdmin ? (
+                    <span className="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-amber-600" />
+                      <span>View Only</span>
+                    </span>
+                  ) : null}
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full">
+                    {selectedHotel.status || "APPROVED"}
+                  </span>
+                </div>
               </div>
 
               {loading ? (
@@ -999,18 +1310,20 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                             {room.roomType}
                           </span>
 
-                          <button
-                            onClick={() => handleDeleteRoom(room._id)}
-                            disabled={deletingRoomId === room._id}
-                            className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg bg-white/90 hover:bg-rose-50 border border-slate-200 transition disabled:opacity-50 shadow-xs"
-                            title="Delete Room"
-                          >
-                            {deletingRoomId === room._id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
-                            ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
-                            )}
-                          </button>
+                          {isOwnerOfSelected && (
+                            <button
+                              onClick={() => handleDeleteRoom(room._id)}
+                              disabled={deletingRoomId === room._id}
+                              className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg bg-white/90 hover:bg-rose-50 border border-slate-200 transition disabled:opacity-50 shadow-xs"
+                              title="Delete Room"
+                            >
+                              {deletingRoomId === room._id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          )}
                         </div>
 
                         {/* Room Info */}
@@ -1113,12 +1426,28 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                   <p className="text-xs text-slate-400 mb-4">
                     Add room options so travelers can reserve stays at this property.
                   </p>
-                  <button
-                    onClick={() => setIsAddRoomOpen(true)}
-                    className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#5B30D9]/25"
-                  >
-                    Add Room Type
-                  </button>
+                  {isOwnerOfSelected ? (
+                    <button
+                      onClick={() => setIsAddRoomOpen(true)}
+                      className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#5B30D9]/25 inline-flex items-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Room Type</span>
+                    </button>
+                  ) : (
+                    myHotels.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setSelectedHotel(myHotels[0]);
+                          setAvailabilityResult(null);
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-[#5B30D9] hover:from-purple-700 hover:to-[#4C24B8] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#5B30D9]/25 inline-flex items-center gap-1.5"
+                      >
+                        <Crown className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                        <span>Switch to My Property to Add Rooms</span>
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -1153,8 +1482,13 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                 Add Room Type &amp; Inventory
               </h3>
             </div>
-            <p className="text-xs text-slate-500 mb-5">
-              Property: <span className="font-semibold text-slate-900">{selectedHotel?.name}</span>
+            <p className="text-xs text-slate-500 mb-5 flex items-center gap-2">
+              <span>Property: <span className="font-semibold text-slate-900">{selectedHotel?.name}</span></span>
+              {isMyHotel(selectedHotel) && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-[#5B30D9] border border-purple-200">
+                  👑 Your Property
+                </span>
+              )}
             </p>
 
             <form onSubmit={handleCreateRoom} className="space-y-4 text-xs">
@@ -1440,8 +1774,13 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                       CSV / Excel
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Importing into: <span className="font-semibold text-slate-800">{selectedHotel?.name}</span> ({selectedHotel?.location?.city || selectedHotel?.city})
+                  <p className="text-xs text-slate-500 flex items-center gap-2">
+                    <span>Importing into: <strong className="font-semibold text-slate-800">{selectedHotel?.name}</strong> ({selectedHotel?.location?.city || selectedHotel?.city})</span>
+                    {isMyHotel(selectedHotel) && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-[#5B30D9] border border-purple-200">
+                        👑 Your Property
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
