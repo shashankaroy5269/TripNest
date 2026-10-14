@@ -450,18 +450,24 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
 
         const headers = rows[0].map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
 
-        const findColIndex = (keywords) =>
-          headers.findIndex((h) => keywords.some((k) => h.includes(k)));
+        const findColIndex = (exactKeys, fallbackPatterns = []) => {
+          const exactIdx = headers.findIndex((h) => exactKeys.includes(h));
+          if (exactIdx !== -1) return exactIdx;
+          if (fallbackPatterns.length > 0) {
+            return headers.findIndex((h) => fallbackPatterns.some((p) => h.includes(p)));
+          }
+          return -1;
+        };
 
         const nameIdx = findColIndex(["name", "title", "roomname"]);
-        const typeIdx = findColIndex(["roomtype", "type"]);
-        const descIdx = findColIndex(["description", "desc"]);
+        const typeIdx = findColIndex(["roomtype", "type", "category"]);
+        const descIdx = findColIndex(["description", "desc", "about"]);
         const adultsIdx = findColIndex(["adults", "adult", "maxadult", "maxguest"]);
         const childrenIdx = findColIndex(["children", "child", "maxchild"]);
-        const bedsIdx = findColIndex(["bed", "beds", "bedding"]);
-        const totalRoomsIdx = findColIndex(["totalroom", "inventory", "total", "rooms"]);
+        const bedsIdx = findColIndex(["beds", "bed", "bedding"]);
+        const totalRoomsIdx = findColIndex(["totalrooms", "inventory", "total", "rooms"]);
         const basePriceIdx = findColIndex(["baseprice", "price", "rate", "tariff"]);
-        const discountIdx = findColIndex(["discount", "discountpercentage"]);
+        const discountIdx = findColIndex(["discountpercentage", "discount"]);
         const amenitiesIdx = findColIndex(["amenities", "amenity", "features"]);
 
         const VALID_ROOM_TYPES = [

@@ -1144,7 +1144,7 @@ async deleteHotelImage(
           petsAllowed: h.petsAllowed !== undefined ? Boolean(h.petsAllowed) : false,
         },
         images: imgArray,
-        status: HOTEL_STATUS.APPROVED,
+        status: HOTEL_STATUS.PENDING,
       });
     }
 

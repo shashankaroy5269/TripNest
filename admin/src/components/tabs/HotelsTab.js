@@ -37,6 +37,7 @@ import {
   Info,
   Crown,
   Layers,
+  ChevronRight,
 } from "lucide-react";
 
 export default function HotelsTab({
@@ -184,23 +185,29 @@ export default function HotelsTab({
         }
 
         const header = matrix[0].map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
-        const findCol = (keywords) =>
-          header.findIndex((h) => keywords.some((k) => h.includes(k)));
+        const findCol = (exactKeys, fallbackPatterns = []) => {
+          const exactIdx = header.findIndex((h) => exactKeys.includes(h));
+          if (exactIdx !== -1) return exactIdx;
+          if (fallbackPatterns.length > 0) {
+            return header.findIndex((h) => fallbackPatterns.some((p) => h.includes(p)));
+          }
+          return -1;
+        };
 
         const nameIdx = findCol(["name", "hotelname", "title", "property"]);
-        const typeIdx = findCol(["type", "hoteltype", "category"]);
+        const typeIdx = findCol(["hoteltype", "type", "category", "propertytype"]);
         const descIdx = findCol(["description", "desc", "about"]);
-        const addrIdx = findCol(["address", "street", "location"]);
-        const cityIdx = findCol(["city", "town"]);
-        const stateIdx = findCol(["state", "province"]);
-        const countryIdx = findCol(["country"]);
-        const pincodeIdx = findCol(["pincode", "zip", "postal"]);
-        const phoneIdx = findCol(["phone", "contactphone", "mobile", "tel"]);
-        const emailIdx = findCol(["email", "contactemail", "mail"]);
-        const amenitiesIdx = findCol(["amenities", "facilities", "features"]);
-        const checkInIdx = findCol(["checkin", "checkintime", "in"]);
-        const checkOutIdx = findCol(["checkout", "checkouttime", "out"]);
-        const cancellationIdx = findCol(["cancellation", "cancel", "refund"]);
+        const addrIdx = findCol(["address", "street", "location", "addressline"]);
+        const cityIdx = findCol(["city", "town", "district"]);
+        const stateIdx = findCol(["state", "province", "region"]);
+        const countryIdx = findCol(["country", "nation"]);
+        const pincodeIdx = findCol(["pincode", "zip", "zipcode", "postal", "postalcode", "pin"]);
+        const phoneIdx = findCol(["phone", "contactphone", "mobile", "phonenumber", "telephone", "contact"]);
+        const emailIdx = findCol(["email", "contactemail", "mail", "emailaddress"]);
+        const amenitiesIdx = findCol(["amenities", "facilities", "features", "inclusions"]);
+        const checkInIdx = findCol(["checkin", "checkintime", "checkinpolicy"], ["checkin"]);
+        const checkOutIdx = findCol(["checkout", "checkouttime", "checkoutpolicy"], ["checkout"]);
+        const cancellationIdx = findCol(["cancellation", "cancel", "refund", "cancellationpolicy"]);
 
         const parsed = [];
         const initialSelected = new Set();
@@ -367,7 +374,7 @@ export default function HotelsTab({
       setBulkHotelImportResult(resultData);
 
       showToast(
-        `Successfully imported ${resultData.insertedCount || selectedRowsList.length} hotel properties!`,
+        `Successfully imported ${resultData.insertedCount || selectedRowsList.length} hotel properties (Submitted in PENDING status for Super Admin review)!`,
         "success"
       );
 
@@ -1028,12 +1035,18 @@ export default function HotelsTab({
                   <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 relative group">
                     <img
                       src={
-                        detailHotel.images[activeGalleryIndex]?.url ||
                         (typeof detailHotel.images[activeGalleryIndex] === "string"
                           ? detailHotel.images[activeGalleryIndex]
-                          : detailHotel.images[0]?.url)
+                          : detailHotel.images[activeGalleryIndex]?.url) ||
+                        (typeof detailHotel.images[0] === "string"
+                          ? detailHotel.images[0]
+                          : detailHotel.images[0]?.url) ||
+                        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80"
                       }
                       alt={detailHotel.name}
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80";
+                      }}
                       className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                     />
                   </div>
@@ -1999,7 +2012,7 @@ export default function HotelsTab({
                                   {r.isValid && !r.isDuplicate ? (
                                     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                                       <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                      Valid
+                                      Valid (Pending Review)
                                     </span>
                                   ) : (
                                     <span
