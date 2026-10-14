@@ -19,6 +19,11 @@ const {
 } =
   require("../models/hotel.model");
 
+const {
+  ROOM_TYPES
+} =
+  require("../models/room.model");
+
 
 class RoomService {
 
@@ -382,6 +387,203 @@ class RoomService {
     );
   }
 
+  // ==================================================
+  // BULK CREATE ROOMS
+  // ==================================================
+  async bulkCreateRooms(
+    hotelId,
+    ownerId,
+    roomsData,
+    userRole
+  ) {
+    const hotel = await this.checkHotelOwnership(
+      hotelId,
+      ownerId,
+      userRole
+    );
+
+    if (!Array.isArray(roomsData) || roomsData.length === 0) {
+      throw new AppError(
+        "No room records provided for bulk import",
+        httpStatus.StatusCodes.BAD_REQUEST
+      );
+    }
+
+    // Fetch existing rooms to detect duplicates in hotel
+    const existingRooms = await roomRepository.findByHotel(hotelId);
+    const existingNamesSet = new Set(
+      existingRooms.map((r) => r.name.trim().toLowerCase())
+    );
+
+    const validToInsert = [];
+    const errors = [];
+    const skipped = [];
+    const seenInBatch = new Set();
+
+    for (let i = 0; i < roomsData.length; i++) {
+      const item = roomsData[i];
+      const rowNum = item.originalRow || i + 2;
+
+      // 1. Name validation
+      if (!item.name || typeof item.name !== "string" || item.name.trim().length < 2) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Room name is required and must be at least 2 characters.`
+        });
+        continue;
+      }
+
+      const trimmedName = item.name.trim();
+
+      // 2. Room Type validation
+      const normalizedType = (item.roomType || "").toString().trim().toUpperCase();
+      if (!Object.values(ROOM_TYPES).includes(normalizedType)) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Invalid roomType "${item.roomType}". Must be one of: ${Object.values(ROOM_TYPES).join(", ")}.`
+        });
+        continue;
+      }
+
+      // 3. Capacity validation
+      const adults = Number(item.adults);
+      if (isNaN(adults) || adults < 1) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Adults capacity must be a number of at least 1.`
+        });
+        continue;
+      }
+
+      const children = item.children !== undefined ? Number(item.children) : 0;
+      if (isNaN(children) || children < 0) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Children capacity cannot be negative.`
+        });
+        continue;
+      }
+
+      // 4. Beds validation
+      if (!item.beds || typeof item.beds !== "string" || !item.beds.trim()) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Bed configuration is required.`
+        });
+        continue;
+      }
+
+      // 5. Total Rooms Inventory validation
+      const totalRooms = Number(item.totalRooms);
+      if (isNaN(totalRooms) || totalRooms < 1) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Total rooms inventory count must be at least 1.`
+        });
+        continue;
+      }
+
+      // 6. Base Price validation
+      const basePrice = Number(item.basePrice);
+      if (isNaN(basePrice) || basePrice < 0) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Base price per night cannot be negative.`
+        });
+        continue;
+      }
+
+      // 7. Discount Percentage validation
+      const discountPercentage = item.discountPercentage !== undefined ? Number(item.discountPercentage) : 0;
+      if (isNaN(discountPercentage) || discountPercentage < 0 || discountPercentage > 100) {
+        errors.push({
+          row: rowNum,
+          error: `Row ${rowNum}: Discount percentage must be between 0 and 100.`
+        });
+        continue;
+      }
+
+      // 8. Duplicate checking within batch
+      const nameKey = trimmedName.toLowerCase();
+      if (seenInBatch.has(nameKey)) {
+        skipped.push({
+          row: rowNum,
+          name: trimmedName,
+          reason: `Duplicate within import batch: "${trimmedName}" was already included earlier in this import.`
+        });
+        continue;
+      }
+
+      // 9. Duplicate checking against existing hotel rooms
+      if (existingNamesSet.has(nameKey)) {
+        skipped.push({
+          row: rowNum,
+          name: trimmedName,
+          reason: `Already exists: A room named "${trimmedName}" already exists in ${hotel.name}.`
+        });
+        continue;
+      }
+
+      seenInBatch.add(nameKey);
+
+      // Amenities parsing
+      let amenitiesList = [];
+      if (Array.isArray(item.amenities)) {
+        amenitiesList = item.amenities.map((a) => String(a).trim()).filter(Boolean);
+      } else if (typeof item.amenities === "string") {
+        amenitiesList = item.amenities.split(/[,;|]/).map((a) => a.trim()).filter(Boolean);
+      }
+
+      const finalPrice = this.calculateFinalPrice(basePrice, discountPercentage);
+
+      validToInsert.push({
+        hotel: hotelId,
+        name: trimmedName,
+        roomType: normalizedType,
+        description: item.description
+          ? String(item.description).trim()
+          : `Luxurious ${normalizedType.toLowerCase()} room with premium comfort and amenities.`,
+        capacity: { adults, children },
+        beds: String(item.beds).trim(),
+        totalRooms,
+        basePrice,
+        discountPercentage,
+        finalPrice,
+        amenities:
+          amenitiesList.length > 0
+            ? amenitiesList
+            : ["Free Wi-Fi", "Air Conditioning", "Flat-screen TV"],
+        images:
+          Array.isArray(item.images) && item.images.length > 0
+            ? item.images.map((img, idx) =>
+                typeof img === "string"
+                  ? { url: img, publicId: `room_bulk_${Date.now()}_${idx}` }
+                  : img
+              )
+            : [
+                {
+                  url: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+                  publicId: `default_room_${Date.now()}_${i}`
+                }
+              ],
+        status: "ACTIVE"
+      });
+    }
+
+    let insertedRooms = [];
+    if (validToInsert.length > 0) {
+      insertedRooms = await roomRepository.insertMany(validToInsert);
+    }
+
+    return {
+      insertedCount: insertedRooms.length,
+      insertedRooms,
+      skippedCount: skipped.length,
+      skipped,
+      errorCount: errors.length,
+      errors
+    };
+  }
 }
 
 

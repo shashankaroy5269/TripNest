@@ -48,6 +48,17 @@ class RoomRepository {
       roomId
     );
   }
+
+  async insertMany(rooms) {
+    return Room.insertMany(rooms);
+  }
+
+  async findByHotelAndName(hotelId, name) {
+    return Room.findOne({
+      hotel: hotelId,
+      name: { $regex: new RegExp(`^${name.trim()}$`, "i") }
+    });
+  }
 }
 
 module.exports =

@@ -25,6 +25,16 @@ import {
   Sparkles,
   Info,
   UploadCloud,
+  FileSpreadsheet,
+  Download,
+  Filter,
+  Search,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+  RefreshCw,
+  Eye,
+  CheckCheck,
 } from "lucide-react";
 
 export default function RoomsTab({ hotels = [], initialHotelId = null }) {
@@ -68,6 +78,16 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
   const [customAmenity, setCustomAmenity] = useState("");
   const [customImageUrl, setCustomImageUrl] = useState("");
   const [isUploadingImg, setIsUploadingImg] = useState(false);
+
+  // Bulk Import State
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [parsedRows, setParsedRows] = useState([]);
+  const [selectedRowIds, setSelectedRowIds] = useState(new Set());
+  const [bulkFilterMode, setBulkFilterMode] = useState("ALL"); // "ALL" | "SELECTED" | "EXCLUDED" | "ERRORS"
+  const [bulkSearch, setBulkSearch] = useState("");
+  const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
+  const [bulkImportResult, setBulkImportResult] = useState(null);
 
   const popularRoomAmenities = [
     "Free Wi-Fi",
@@ -317,6 +337,329 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
     });
   };
 
+  // ==================================================
+  // BULK ROOM IMPORT HELPERS & SELECTION HANDLERS
+  // ==================================================
+  const parseCSVText = (text) => {
+    const lines = [];
+    let row = [];
+    let inQuotes = false;
+    let currentVal = "";
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentVal += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === "," && !inQuotes) {
+        row.push(currentVal.trim());
+        currentVal = "";
+      } else if ((char === "\r" || char === "\n") && !inQuotes) {
+        if (char === "\r" && nextChar === "\n") {
+          i++;
+        }
+        row.push(currentVal.trim());
+        if (row.some((val) => val !== "")) {
+          lines.push(row);
+        }
+        row = [];
+        currentVal = "";
+      } else {
+        currentVal += char;
+      }
+    }
+
+    if (currentVal.trim() !== "" || row.length > 0) {
+      row.push(currentVal.trim());
+      if (row.some((val) => val !== "")) {
+        lines.push(row);
+      }
+    }
+
+    return lines;
+  };
+
+  const handleBulkFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkFile(file);
+    setBulkImportResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target.result;
+        const rows = parseCSVText(text);
+
+        if (!rows || rows.length < 2) {
+          showToast("CSV file must contain a header row and at least 1 data row.", "error");
+          setParsedRows([]);
+          setSelectedRowIds(new Set());
+          return;
+        }
+
+        const headers = rows[0].map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+
+        const findColIndex = (keywords) =>
+          headers.findIndex((h) => keywords.some((k) => h.includes(k)));
+
+        const nameIdx = findColIndex(["name", "title", "roomname"]);
+        const typeIdx = findColIndex(["roomtype", "type"]);
+        const descIdx = findColIndex(["description", "desc"]);
+        const adultsIdx = findColIndex(["adults", "adult", "maxadult", "maxguest"]);
+        const childrenIdx = findColIndex(["children", "child", "maxchild"]);
+        const bedsIdx = findColIndex(["bed", "beds", "bedding"]);
+        const totalRoomsIdx = findColIndex(["totalroom", "inventory", "total", "rooms"]);
+        const basePriceIdx = findColIndex(["baseprice", "price", "rate", "tariff"]);
+        const discountIdx = findColIndex(["discount", "discountpercentage"]);
+        const amenitiesIdx = findColIndex(["amenities", "amenity", "features"]);
+
+        const VALID_ROOM_TYPES = [
+          "STANDARD",
+          "DELUXE",
+          "PREMIUM",
+          "EXECUTIVE",
+          "SUPER_DELUXE",
+          "SUITE",
+          "FAMILY",
+        ];
+
+        const existingNames = new Set((rooms || []).map((r) => r.name.trim().toLowerCase()));
+        const seenNamesInFile = new Set();
+        const parsed = [];
+        const initialSelected = new Set();
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length === 0 || row.every((c) => !c)) continue;
+
+          const originalRowNumber = i + 1; // Excel row number (1-based, header is 1)
+          const rowId = `row_${originalRowNumber}`;
+
+          const name = (nameIdx !== -1 && row[nameIdx] !== undefined ? row[nameIdx] : "").trim();
+          let rawType = (typeIdx !== -1 && row[typeIdx] !== undefined ? row[typeIdx] : "DELUXE")
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, "_");
+          if (!VALID_ROOM_TYPES.includes(rawType)) {
+            rawType = rawType.replace(/-/g, "_");
+          }
+
+          const description = descIdx !== -1 && row[descIdx] ? row[descIdx].trim() : "";
+          const adults = adultsIdx !== -1 && !isNaN(parseInt(row[adultsIdx], 10))
+            ? parseInt(row[adultsIdx], 10)
+            : 2;
+          const children = childrenIdx !== -1 && !isNaN(parseInt(row[childrenIdx], 10))
+            ? parseInt(row[childrenIdx], 10)
+            : 0;
+          const beds = bedsIdx !== -1 && row[bedsIdx] ? row[bedsIdx].trim() : "1 King Bed";
+          const totalRooms = totalRoomsIdx !== -1 && !isNaN(parseInt(row[totalRoomsIdx], 10))
+            ? parseInt(row[totalRoomsIdx], 10)
+            : 5;
+          const basePrice = basePriceIdx !== -1 && !isNaN(parseFloat(row[basePriceIdx]))
+            ? parseFloat(row[basePriceIdx])
+            : 3500;
+          const discountPercentage = discountIdx !== -1 && !isNaN(parseFloat(row[discountIdx]))
+            ? parseFloat(row[discountIdx])
+            : 0;
+
+          const rawAmenities = amenitiesIdx !== -1 && row[amenitiesIdx] ? row[amenitiesIdx] : "";
+          const amenities = rawAmenities
+            ? rawAmenities.split(/[,;|]/).map((a) => a.trim()).filter(Boolean)
+            : ["Free Wi-Fi", "Air Conditioning"];
+
+          const finalPrice = Number(
+            (basePrice - (basePrice * discountPercentage) / 100).toFixed(2)
+          );
+
+          // Row Validation
+          const errors = [];
+          if (!name || name.length < 2) {
+            errors.push("Name is required (min 2 chars)");
+          }
+          if (!VALID_ROOM_TYPES.includes(rawType)) {
+            errors.push(`Invalid roomType "${rawType}". Must be STANDARD, DELUXE, PREMIUM, EXECUTIVE, SUPER_DELUXE, SUITE, or FAMILY`);
+          }
+          if (adults < 1) {
+            errors.push("Adults capacity must be >= 1");
+          }
+          if (children < 0) {
+            errors.push("Children capacity cannot be negative");
+          }
+          if (!beds) {
+            errors.push("Bed configuration is required");
+          }
+          if (totalRooms < 1) {
+            errors.push("Total rooms inventory must be >= 1");
+          }
+          if (basePrice < 0) {
+            errors.push("Base price cannot be negative");
+          }
+          if (discountPercentage < 0 || discountPercentage > 100) {
+            errors.push("Discount must be 0-100%");
+          }
+
+          const lowerName = name.toLowerCase();
+          const isDuplicateInFile = seenNamesInFile.has(lowerName);
+          if (isDuplicateInFile) {
+            errors.push(`Duplicate in file: "${name}" appeared in an earlier row`);
+          }
+          seenNamesInFile.add(lowerName);
+
+          const isDuplicateExisting = existingNames.has(lowerName);
+          if (isDuplicateExisting) {
+            errors.push(`Already exists in ${selectedHotel?.name || "this hotel"}`);
+          }
+
+          const isValid = errors.length === 0;
+
+          parsed.push({
+            id: rowId,
+            originalRowNumber,
+            name,
+            roomType: rawType,
+            description,
+            adults,
+            children,
+            beds,
+            totalRooms,
+            basePrice,
+            discountPercentage,
+            finalPrice,
+            amenities,
+            isValid,
+            errors,
+            isDuplicate: isDuplicateInFile || isDuplicateExisting,
+          });
+
+          // Select all valid records by default
+          if (isValid) {
+            initialSelected.add(rowId);
+          }
+        }
+
+        setParsedRows(parsed);
+        setSelectedRowIds(initialSelected);
+        showToast(`Loaded ${parsed.length} room records from CSV!`, "success");
+      } catch (err) {
+        console.error("Error parsing CSV:", err);
+        showToast("Failed to parse CSV file. Please check format.", "error");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const toggleRowSelection = (rowId) => {
+    setSelectedRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowId)) {
+        next.delete(rowId);
+      } else {
+        next.add(rowId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const allIds = new Set(parsedRows.map((r) => r.id));
+    setSelectedRowIds(allIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedRowIds(new Set());
+  };
+
+  const handleSelectAllValid = () => {
+    const validIds = new Set(
+      parsedRows.filter((r) => r.isValid && !r.isDuplicate).map((r) => r.id)
+    );
+    setSelectedRowIds(validIds);
+  };
+
+  const handleSelectPresetRows = (targetRowNumbers) => {
+    const targetSet = new Set(targetRowNumbers.map((num) => `row_${num}`));
+    const matched = new Set(
+      parsedRows.filter((r) => targetSet.has(r.id)).map((r) => r.id)
+    );
+    setSelectedRowIds(matched);
+    showToast(`Selected ${matched.size} preset rows: [${targetRowNumbers.join(", ")}]`, "info");
+  };
+
+  const handleDownloadSampleCSV = () => {
+    const csvUrl = "/sample_rooms_50.csv";
+    const link = document.createElement("a");
+    link.href = csvUrl;
+    link.setAttribute("download", "sample_rooms_50.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Downloaded sample_rooms_50.csv!", "success");
+  };
+
+  const handleBulkSubmit = async () => {
+    if (!selectedHotel?._id) {
+      showToast("No hotel selected", "error");
+      return;
+    }
+
+    const selectedRowsList = parsedRows.filter((r) => selectedRowIds.has(r.id));
+    if (selectedRowsList.length === 0) {
+      showToast("No rows selected! Please check at least one row checkbox to import.", "error");
+      return;
+    }
+
+    setIsBulkSubmitting(true);
+    setBulkImportResult(null);
+
+    try {
+      const payload = selectedRowsList.map((r) => ({
+        name: r.name,
+        roomType: r.roomType,
+        description: r.description,
+        adults: r.adults,
+        children: r.children,
+        beds: r.beds,
+        totalRooms: r.totalRooms,
+        basePrice: r.basePrice,
+        discountPercentage: r.discountPercentage,
+        amenities: r.amenities,
+        originalRow: r.originalRowNumber,
+      }));
+
+      const res = await hotelApi.bulkCreateRooms(selectedHotel._id, payload);
+      const resultData = res?.data || res;
+      setBulkImportResult(resultData);
+
+      showToast(
+        `Successfully imported ${resultData.insertedCount || selectedRowsList.length} rooms into ${selectedHotel.name}!`,
+        "success"
+      );
+
+      // Refresh room list
+      await loadRooms(selectedHotel._id);
+
+      // Deselect imported rows
+      setSelectedRowIds(new Set());
+    } catch (err) {
+      console.error("Bulk import failed:", err);
+      showToast(
+        typeof err === "string" ? err : err.message || "Bulk room import failed",
+        "error"
+      );
+    } finally {
+      setIsBulkSubmitting(false);
+    }
+  };
+
   const activeInspectRoom = rooms.find((r) => r._id === inspectRoomId);
 
   return (
@@ -333,13 +676,25 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
         </div>
 
         {selectedHotel && (
-          <button
-            onClick={() => setIsAddRoomOpen(true)}
-            className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Room Type</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={() => {
+                setIsBulkImportOpen(true);
+                setBulkImportResult(null);
+              }}
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Bulk Import CSV / Excel</span>
+            </button>
+            <button
+              onClick={() => setIsAddRoomOpen(true)}
+              className="px-4 py-2 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Room Type</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -1060,6 +1415,503 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================== */}
+      {/* BULK ROOM IMPORT MODAL (CSV / EXCEL) */}
+      {/* ================================================== */}
+      {isBulkImportOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[94vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-sm">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900">
+                      Bulk Room Import &amp; Flexible Selection
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-[#5B30D9]">
+                      CSV / Excel
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Importing into: <span className="font-semibold text-slate-800">{selectedHotel?.name}</span> ({selectedHotel?.location?.city || selectedHotel?.city})
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadSampleCSV}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition"
+                  title="Download 50-Row Sample CSV Template"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Download Sample CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsBulkImportOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin">
+              {/* File Upload Zone */}
+              <div className="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50/70 transition flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-200 shadow-sm flex items-center justify-center text-emerald-600 shrink-0">
+                    <UploadCloud className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {bulkFile ? bulkFile.name : "Select or Drop your Excel / CSV file"}
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {bulkFile
+                        ? `${(bulkFile.size / 1024).toFixed(1)} KB — ${parsedRows.length} room rows parsed`
+                        : "Supports .csv files with custom headers (name, roomType, basePrice, beds, adults, totalRooms, etc.)"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <label className="flex-1 sm:flex-initial cursor-pointer px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition text-center">
+                    <span>{bulkFile ? "Change File" : "Browse CSV File"}</span>
+                    <input
+                      type="file"
+                      accept=".csv, text/csv, application/vnd.ms-excel"
+                      onChange={handleBulkFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSampleCSV}
+                    className="sm:hidden px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Import Results Banner */}
+              {bulkImportResult && (
+                <div
+                  className={`p-4 rounded-2xl border ${
+                    bulkImportResult.insertedCount > 0
+                      ? "bg-emerald-50/90 border-emerald-200 text-emerald-900"
+                      : "bg-amber-50/90 border-amber-200 text-amber-900"
+                  } space-y-2 animate-fadeIn`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-sm">
+                      Import Complete: {bulkImportResult.insertedCount || 0} rooms successfully created in database!
+                    </span>
+                  </div>
+                  <div className="text-xs flex flex-wrap gap-4 pt-1 border-t border-emerald-200/60">
+                    <span>✅ Inserted: <strong>{bulkImportResult.insertedCount || 0}</strong></span>
+                    <span>⏭️ Skipped / Duplicate: <strong>{bulkImportResult.skippedCount || 0}</strong></span>
+                    <span>⚠️ Validation Errors: <strong>{bulkImportResult.errorCount || 0}</strong></span>
+                  </div>
+                  {bulkImportResult.skipped && bulkImportResult.skipped.length > 0 && (
+                    <div className="mt-2 text-xs bg-white/70 p-2.5 rounded-xl space-y-1">
+                      <span className="font-bold text-slate-700 block">Skipped Details:</span>
+                      {bulkImportResult.skipped.map((s, idx) => (
+                        <p key={idx} className="text-slate-600">
+                          • Row {s.row} ({s.name}): {s.reason}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  {bulkImportResult.errors && bulkImportResult.errors.length > 0 && (
+                    <div className="mt-2 text-xs bg-rose-50/80 border border-rose-200 p-2.5 rounded-xl space-y-1 text-rose-800">
+                      <span className="font-bold block">Validation Errors:</span>
+                      {bulkImportResult.errors.map((e, idx) => (
+                        <p key={idx}>• {typeof e === "string" ? e : e.error}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {parsedRows.length > 0 && (
+                <div className="space-y-3.5">
+                  {/* Selection Toolbar & Statistics Bar */}
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    {/* Stat Badges */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+                        Total Records: <strong className="text-slate-900">{parsedRows.length}</strong>
+                      </div>
+                      <div className="px-3 py-1 rounded-xl bg-purple-100 text-[#5B30D9] border border-purple-200 text-xs font-bold shadow-2xs">
+                        Selected: <strong>{selectedRowIds.size}</strong>
+                      </div>
+                      <div className="px-3 py-1 rounded-xl bg-slate-200/70 text-slate-700 text-xs font-semibold">
+                        Excluded: <strong>{parsedRows.length - selectedRowIds.size}</strong>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                        Valid: <strong>{parsedRows.filter((r) => r.isValid && !r.isDuplicate).length}</strong>
+                      </div>
+                      {parsedRows.some((r) => !r.isValid || r.isDuplicate) && (
+                        <div className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold">
+                          Warnings/Errors: <strong>{parsedRows.filter((r) => !r.isValid || r.isDuplicate).length}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Selection Buttons */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleSelectAll}
+                        className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition"
+                        title="Select every single row in the file"
+                      >
+                        Select All ({parsedRows.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSelectAllValid}
+                        className="px-2.5 py-1 bg-white hover:bg-purple-50 text-[#5B30D9] border border-purple-200 rounded-lg text-xs font-bold transition"
+                        title="Select all rows without validation issues"
+                      >
+                        Select All Valid
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDeselectAll}
+                        className="px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold transition"
+                        title="Deselect all rows (clear selection)"
+                      >
+                        Clear Selection
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectPresetRows([2, 7, 15])}
+                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold transition"
+                        title="Select exactly rows 2, 7, and 15 (test requirement)"
+                      >
+                        🎯 Select Rows 2, 7, 15
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filter Tabs & Search Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+                      <button
+                        type="button"
+                        onClick={() => setBulkFilterMode("ALL")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                          bulkFilterMode === "ALL"
+                            ? "bg-[#5B30D9] text-white shadow-sm"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        All Records ({parsedRows.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBulkFilterMode("SELECTED")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+                          bulkFilterMode === "SELECTED"
+                            ? "bg-purple-600 text-white shadow-sm"
+                            : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                        }`}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Selected for Import ({selectedRowIds.size})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBulkFilterMode("EXCLUDED")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                          bulkFilterMode === "EXCLUDED"
+                            ? "bg-slate-700 text-white shadow-sm"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        Excluded ({parsedRows.length - selectedRowIds.size})
+                      </button>
+                      {parsedRows.some((r) => !r.isValid || r.isDuplicate) && (
+                        <button
+                          type="button"
+                          onClick={() => setBulkFilterMode("ERRORS")}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                            bulkFilterMode === "ERRORS"
+                              ? "bg-rose-600 text-white shadow-sm"
+                              : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                          }`}
+                        >
+                          Warnings / Errors ({parsedRows.filter((r) => !r.isValid || r.isDuplicate).length})
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="relative min-w-[200px] sm:w-64">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Filter rows by name or #..."
+                        value={bulkSearch}
+                        onChange={(e) => setBulkSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5B30D9]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preview Notice Banner */}
+                  <div className="px-3.5 py-2 rounded-xl bg-purple-50/70 border border-purple-200/80 text-xs text-[#5B30D9] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 shrink-0" />
+                      <span>
+                        {bulkFilterMode === "SELECTED" ? (
+                          <>
+                            <strong>Exact Selection Preview:</strong> Exactly these <strong>{selectedRowIds.size}</strong> records will be sent to the backend. All other <strong>{parsedRows.length - selectedRowIds.size}</strong> records are excluded.
+                          </>
+                        ) : (
+                          <>
+                            Check/uncheck any individual row. Only <strong>{selectedRowIds.size}</strong> checked records will be submitted to the backend.
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    <span className="font-bold text-[11px] shrink-0 hidden md:inline">
+                      {selectedRowIds.size} of {parsedRows.length} selected
+                    </span>
+                  </div>
+
+                  {/* Master Table of Room Records */}
+                  <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                    <div className="overflow-x-auto max-h-[46vh] scrollbar-thin">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead className="bg-slate-50/90 text-slate-600 font-bold sticky top-0 z-10 border-b border-slate-200 backdrop-blur-xs">
+                          <tr>
+                            <th className="py-2.5 px-3 w-10 text-center">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  parsedRows.length > 0 &&
+                                  parsedRows.every((r) => selectedRowIds.has(r.id))
+                                }
+                                onChange={() => {
+                                  if (parsedRows.every((r) => selectedRowIds.has(r.id))) {
+                                    handleDeselectAll();
+                                  } else {
+                                    handleSelectAll();
+                                  }
+                                }}
+                                className="w-4 h-4 rounded text-[#5B30D9] focus:ring-[#5B30D9] cursor-pointer"
+                                title="Toggle All Rows"
+                              />
+                            </th>
+                            <th className="py-2.5 px-3 w-16">Row #</th>
+                            <th className="py-2.5 px-3 min-w-[200px]">Room Name</th>
+                            <th className="py-2.5 px-3">Room Type</th>
+                            <th className="py-2.5 px-3">Capacity</th>
+                            <th className="py-2.5 px-3">Beds</th>
+                            <th className="py-2.5 px-3 text-center">Rooms</th>
+                            <th className="py-2.5 px-3">Price / Night</th>
+                            <th className="py-2.5 px-3 min-w-[160px]">Amenities</th>
+                            <th className="py-2.5 px-3 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 bg-white">
+                          {parsedRows
+                            .filter((r) => {
+                              if (bulkSearch.trim()) {
+                                const q = bulkSearch.toLowerCase();
+                                const matchName = r.name.toLowerCase().includes(q);
+                                const matchType = r.roomType.toLowerCase().includes(q);
+                                const matchRow = String(r.originalRowNumber).includes(q);
+                                if (!matchName && !matchType && !matchRow) return false;
+                              }
+                              if (bulkFilterMode === "SELECTED") return selectedRowIds.has(r.id);
+                              if (bulkFilterMode === "EXCLUDED") return !selectedRowIds.has(r.id);
+                              if (bulkFilterMode === "ERRORS") return !r.isValid || r.isDuplicate;
+                              return true;
+                            })
+                            .map((row) => {
+                              const isSelected = selectedRowIds.has(row.id);
+                              return (
+                                <tr
+                                  key={row.id}
+                                  onClick={() => toggleRowSelection(row.id)}
+                                  className={`cursor-pointer transition select-none ${
+                                    isSelected
+                                      ? "bg-purple-50/70 hover:bg-purple-100/60 font-medium"
+                                      : "hover:bg-slate-50 text-slate-500 opacity-80"
+                                  }`}
+                                >
+                                  {/* Checkbox */}
+                                  <td
+                                    className="py-2 px-3 text-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => toggleRowSelection(row.id)}
+                                      className="w-4 h-4 rounded text-[#5B30D9] focus:ring-[#5B30D9] cursor-pointer"
+                                    />
+                                  </td>
+
+                                  {/* Row Number */}
+                                  <td className="py-2 px-3 font-bold text-slate-600">
+                                    <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px]">
+                                      Row {row.originalRowNumber}
+                                    </span>
+                                  </td>
+
+                                  {/* Room Name & Desc */}
+                                  <td className="py-2 px-3">
+                                    <p className={`font-bold ${isSelected ? "text-slate-900" : "text-slate-600"}`}>
+                                      {row.name || <span className="text-rose-500 italic">Empty Name</span>}
+                                    </p>
+                                    {row.description && (
+                                      <p className="text-[11px] text-slate-400 truncate max-w-xs">
+                                        {row.description}
+                                      </p>
+                                    )}
+                                  </td>
+
+                                  {/* Room Type */}
+                                  <td className="py-2 px-3">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                      {row.roomType}
+                                    </span>
+                                  </td>
+
+                                  {/* Capacity */}
+                                  <td className="py-2 px-3 text-slate-700 whitespace-nowrap">
+                                    {row.adults} Adults{row.children > 0 ? `, ${row.children} Ch.` : ""}
+                                  </td>
+
+                                  {/* Beds */}
+                                  <td className="py-2 px-3 text-slate-700 whitespace-nowrap">
+                                    {row.beds}
+                                  </td>
+
+                                  {/* Total Rooms */}
+                                  <td className="py-2 px-3 text-center font-bold text-slate-800">
+                                    {row.totalRooms}
+                                  </td>
+
+                                  {/* Price */}
+                                  <td className="py-2 px-3 whitespace-nowrap">
+                                    <span className="font-bold text-slate-900">₹{row.finalPrice?.toLocaleString("en-IN")}</span>
+                                    {row.discountPercentage > 0 && (
+                                      <span className="ml-1 text-[10px] text-emerald-600 font-bold">
+                                        (-{row.discountPercentage}%)
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Amenities */}
+                                  <td className="py-2 px-3">
+                                    <div className="flex flex-wrap gap-1 max-w-xs">
+                                      {row.amenities.slice(0, 3).map((a, i) => (
+                                        <span
+                                          key={i}
+                                          className="px-1.5 py-0.5 rounded text-[9px] bg-slate-100 text-slate-600"
+                                        >
+                                          {a}
+                                        </span>
+                                      ))}
+                                      {row.amenities.length > 3 && (
+                                        <span className="text-[9px] text-slate-400">
+                                          +{row.amenities.length - 3} more
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  {/* Status */}
+                                  <td className="py-2 px-3 text-center whitespace-nowrap">
+                                    {row.isValid && !row.isDuplicate ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        <Check className="w-3 h-3" /> Valid
+                                      </span>
+                                    ) : row.isDuplicate ? (
+                                      <span
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"
+                                        title={row.errors.join("; ")}
+                                      >
+                                        <AlertTriangle className="w-3 h-3" /> Duplicate
+                                      </span>
+                                    ) : (
+                                      <span
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200"
+                                        title={row.errors.join("; ")}
+                                      >
+                                        <XCircle className="w-3 h-3" /> Error
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-xs text-slate-600 font-medium">
+                {parsedRows.length > 0 ? (
+                  <span>
+                    Selected: <strong className="text-[#5B30D9] font-bold">{selectedRowIds.size}</strong> of {parsedRows.length} rooms ({parsedRows.length - selectedRowIds.size} excluded)
+                  </span>
+                ) : (
+                  <span>Upload a CSV file or download the template to begin</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkImportOpen(false)}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold text-xs transition"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkSubmit}
+                  disabled={selectedRowIds.size === 0 || isBulkSubmitting}
+                  className="px-6 py-2.5 bg-[#5B30D9] hover:bg-[#4C24B8] text-white rounded-xl text-xs font-bold shadow-md shadow-[#5B30D9]/25 transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isBulkSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Importing {selectedRowIds.size} Records...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCheck className="w-4 h-4" />
+                      <span>Import Selected ({selectedRowIds.size}) Rooms</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

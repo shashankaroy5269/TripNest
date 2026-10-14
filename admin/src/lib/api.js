@@ -180,6 +180,8 @@ export const hotelApi = {
     axiosAdmin.post("/hotels/upload-image", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  bulkCreateRooms: (hotelId, rooms) =>
+    axiosAdmin.post(`/rooms/hotel/${hotelId}/bulk`, { rooms }),
 };
 
 export const availabilityApi = {

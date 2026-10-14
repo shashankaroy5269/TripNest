@@ -168,6 +168,33 @@ class RoomController {
     );
   };
 
+  // ==================================================
+  // BULK CREATE ROOMS
+  // ==================================================
+  bulkCreateRooms = async (
+    req,
+    res
+  ) => {
+    const hotelId = req.params.hotelId || req.body.hotelId;
+    const roomsData = req.body.rooms || req.body;
+
+    const result = await roomService.bulkCreateRooms(
+      hotelId,
+      req.user.userId,
+      roomsData,
+      req.user.role
+    );
+
+    return ApiResponse.success(
+      res,
+      {
+        statusCode: result.insertedCount > 0 ? 201 : 200,
+        message: `Successfully processed bulk import: ${result.insertedCount} rooms created.`,
+        data: result
+      }
+    );
+  };
+
 }
 
 

@@ -33,7 +33,8 @@ const ROLES =
 
 const {
   createRoomSchema,
-  updateRoomSchema
+  updateRoomSchema,
+  bulkCreateRoomSchema
 } =
   require(
     "../validators/room.validator"
@@ -42,6 +43,41 @@ const {
 
 const router =
   express.Router();
+
+
+// ==================================================
+// BULK CREATE ROOMS (EXCEL / CSV IMPORT)
+// ==================================================
+
+router.post(
+  "/hotel/:hotelId/bulk",
+  authenticate,
+  authorize(
+    ROLES.HOTEL_ADMIN,
+    ROLES.SUPER_ADMIN
+  ),
+  validate(
+    bulkCreateRoomSchema
+  ),
+  asyncHandler(
+    roomController.bulkCreateRooms
+  )
+);
+
+router.post(
+  "/bulk",
+  authenticate,
+  authorize(
+    ROLES.HOTEL_ADMIN,
+    ROLES.SUPER_ADMIN
+  ),
+  validate(
+    bulkCreateRoomSchema
+  ),
+  asyncHandler(
+    roomController.bulkCreateRooms
+  )
+);
 
 
 // ==================================================
