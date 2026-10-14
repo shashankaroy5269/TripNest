@@ -136,7 +136,9 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
       if (initialHotelId) {
         const found = hotels.find((h) => h._id === initialHotelId);
         if (found) {
-          setSelectedHotel(found);
+          if (selectedHotel?._id !== found._id) {
+            setSelectedHotel(found);
+          }
           return;
         }
       }
@@ -145,14 +147,14 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
         setSelectedHotel(owned || hotels[0]);
       }
     }
-  }, [hotels, initialHotelId, user]);
+  }, [hotels, initialHotelId]);
 
   // Load rooms when selected hotel changes
   useEffect(() => {
     if (selectedHotel?._id) {
       loadRooms(selectedHotel._id);
     }
-  }, [selectedHotel]);
+  }, [selectedHotel?._id]);
 
   // Automatically select first room for inspection
   useEffect(() => {
@@ -1245,6 +1247,11 @@ export default function RoomsTab({ hotels = [], initialHotelId = null }) {
                         {availabilityResult.availableRooms >= inspectRequestedRooms
                           ? `✓ Inventory Confirmed: ${availabilityResult.availableRooms} room(s) available for selected dates.`
                           : `✗ Insufficient Rooms: Only ${availabilityResult.availableRooms} room(s) available (requested ${inspectRequestedRooms}).`}
+                        {availabilityResult.hotelStatus === "PENDING" && (
+                          <span className="block text-[11px] text-amber-600 font-semibold mt-0.5">
+                            (Note: Hotel property is currently PENDING approval from Super Admin)
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>

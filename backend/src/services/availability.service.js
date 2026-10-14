@@ -141,12 +141,12 @@ class AvailabilityService {
 
 
     if (
-      hotel.status !==
-      "APPROVED"
+      hotel.status === "BLOCKED" ||
+      hotel.status === "REJECTED"
     ) {
 
       throw new AppError(
-        "Hotel is not currently available for booking",
+        `Hotel is currently ${hotel.status.toLowerCase()} and not available for booking`,
         httpStatus.StatusCodes.BAD_REQUEST
       );
     }
@@ -218,6 +218,8 @@ class AvailabilityService {
       availableRooms,
 
       available,
+
+      hotelStatus: hotel.status,
 
       price: {
 
