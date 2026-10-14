@@ -21,7 +21,79 @@ import {
   Layers,
   AlertCircle,
   AlertTriangle,
+  Calendar,
+  Award,
+  Crown,
+  Star,
+  ArrowRight,
+  Filter,
 } from "lucide-react";
+
+const ROOM_TYPE_META = {
+  DELUXE: {
+    label: "Deluxe",
+    title: "Deluxe Luxury Rooms",
+    tagline: "Serene & Comfortable Stays",
+    desc: "Spacious rooms crafted for relaxed luxury with premium bedding, ensuite bath, and scenic balcony views.",
+    icon: Sparkles,
+    badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+    headerBg: "from-blue-50/80 via-indigo-50/40 to-white",
+  },
+  SUPER_DELUXE: {
+    label: "Super Deluxe",
+    title: "Super Deluxe Panoramic Suites",
+    tagline: "Signature Luxury & Scenic Balcony",
+    desc: "Elevated high-floor retreats with sweeping panoramic vistas, plush lounge seating, and curated artisan amenities.",
+    icon: Award,
+    badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
+    headerBg: "from-purple-50/80 via-indigo-50/40 to-white",
+  },
+  FAMILY: {
+    label: "Family Suite",
+    title: "Family Suites & Cottages",
+    tagline: "Expansive Layouts for Groups & Families",
+    desc: "Extra-spacious configurations featuring multiple beds, living parlors, and child-safe tranquil environments.",
+    icon: Users,
+    badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    headerBg: "from-emerald-50/80 via-teal-50/40 to-white",
+  },
+  EXECUTIVE: {
+    label: "Executive",
+    title: "Executive Business Club Rooms",
+    tagline: "Premium Work & Leisure Experience",
+    desc: "Designed with high-speed workstation desks, ergonomic chairs, soundproof glass, and exclusive concierge access.",
+    icon: Layers,
+    badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
+    headerBg: "from-amber-50/80 via-orange-50/40 to-white",
+  },
+  SUITE: {
+    label: "Royal Suite",
+    title: "Palatial Royal Suites",
+    tagline: "Ultra-Premium Master Suites",
+    desc: "Palatial multi-room residences with dedicated living lounges, walk-in closets, and luxury soaking jacuzzi tubs.",
+    icon: Crown,
+    badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+    headerBg: "from-rose-50/80 via-pink-50/40 to-white",
+  },
+  PREMIUM: {
+    label: "Premium Villa",
+    title: "Premium Chalets & Water Villas",
+    tagline: "Elite Waterfront & Mountain Retreats",
+    desc: "Exclusive stand-alone chalets with direct pool/lawn access, customized dining options, and bespoke hospitality.",
+    icon: Star,
+    badgeBg: "bg-violet-50 text-violet-700 border-violet-200",
+    headerBg: "from-violet-50/80 via-fuchsia-50/40 to-white",
+  },
+  STANDARD: {
+    label: "Standard",
+    title: "Standard Comfort Rooms",
+    tagline: "Essential Value & Cozy Accommodations",
+    desc: "Crisp, immaculate accommodations equipped with quality bedding, air conditioning, and full modern essentials.",
+    icon: Bed,
+    badgeBg: "bg-slate-100 text-slate-700 border-slate-200",
+    headerBg: "from-slate-100/80 via-slate-50 to-white",
+  },
+};
 
 const DEFAULT_PHOTOS = [
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
@@ -62,8 +134,9 @@ export default function HotelDetailsPage() {
   const [viewingRoomModal, setViewingRoomModal] = useState(null);
   const [activeRoomImgIndex, setActiveRoomImgIndex] = useState(0);
 
-  const [availLoading, setAvailLoading] = useState(false);
-  const [availability, setAvailability] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [hotelAvailMap, setHotelAvailMap] = useState({});
+  const [hotelAvailLoading, setHotelAvailLoading] = useState(false);
 
   const handleCheckInChange = (newVal) => {
     setCheckIn(newVal);
@@ -76,43 +149,42 @@ export default function HotelDetailsPage() {
 
   useEffect(() => {
     let isCancelled = false;
-    async function checkCurrentAvailability() {
-      if (!selectedRoomId || !checkIn || !checkOut || checkIn >= checkOut) {
-        setAvailability(null);
+    async function loadHotelAvailability() {
+      if (!id || !checkIn || !checkOut || checkIn >= checkOut) {
         return;
       }
       try {
-        setAvailLoading(true);
-        const res = await hotelApi.checkAvailability({
-          roomId: selectedRoomId,
+        setHotelAvailLoading(true);
+        const res = await hotelApi.getHotelRoomsAvailability(id, {
           checkIn,
           checkOut,
           rooms: roomsCount,
         });
         if (!isCancelled) {
-          const result = res?.data || res;
-          setAvailability(result);
+          const list = res?.data || res || [];
+          const map = {};
+          if (Array.isArray(list)) {
+            list.forEach((item) => {
+              if (item.roomId) {
+                map[item.roomId] = item;
+              }
+            });
+          }
+          setHotelAvailMap(map);
         }
       } catch (err) {
-        if (!isCancelled) {
-          console.error("Availability check error:", err);
-          setAvailability({
-            available: false,
-            availableRooms: 0,
-            errorMessage: err?.response?.data?.message || "Unavailable for selected dates",
-          });
-        }
+        console.error("Hotel rooms availability error:", err);
       } finally {
         if (!isCancelled) {
-          setAvailLoading(false);
+          setHotelAvailLoading(false);
         }
       }
     }
-    checkCurrentAvailability();
+    loadHotelAvailability();
     return () => {
       isCancelled = true;
     };
-  }, [selectedRoomId, checkIn, checkOut, roomsCount]);
+  }, [id, checkIn, checkOut, roomsCount]);
 
   const openRoomModal = (room) => {
     setViewingRoomModal(room);
@@ -207,20 +279,32 @@ export default function HotelDetailsPage() {
     Math.round((checkOutD - checkInD) / (1000 * 60 * 60 * 24))
   );
 
+  const categoriesPresent = React.useMemo(() => {
+    const list = [];
+    rooms.forEach((r) => {
+      const t = r.roomType || "STANDARD";
+      if (!list.includes(t)) {
+        list.push(t);
+      }
+    });
+    return list;
+  }, [rooms]);
+
   const selectedRoom = rooms.find((r) => r._id === selectedRoomId) || rooms[0];
   const roomPricePerNight = selectedRoom?.finalPrice || selectedRoom?.pricePerNight || 3500;
   const subtotal = roomPricePerNight * nights * roomsCount;
   const estimatedTax = Math.round(subtotal * 0.12);
   const totalAmount = subtotal + estimatedTax;
 
-  const isAvailable = availability ? availability.available : true;
+  const selectedRoomAvail = hotelAvailMap[selectedRoom?._id];
+  const isAvailable = selectedRoomAvail ? selectedRoomAvail.available : true;
   const availableRoomsLeft =
-    availability?.availableRooms !== undefined
-      ? availability.availableRooms
+    selectedRoomAvail?.availableRooms !== undefined
+      ? selectedRoomAvail.availableRooms
       : (selectedRoom?.totalRooms ?? 1);
-  const isSoldOut = availability !== null && (!availability.available || availableRoomsLeft === 0);
+  const isSoldOut = selectedRoomAvail !== undefined && (!selectedRoomAvail.available || availableRoomsLeft === 0);
   const isInsufficient =
-    availability !== null &&
+    selectedRoomAvail !== undefined &&
     availableRoomsLeft > 0 &&
     availableRoomsLeft < roomsCount;
 
@@ -364,169 +448,436 @@ export default function HotelDetailsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                Available Room Types
-              </h2>
-              <p className="text-xs text-slate-500 mb-6">
-                Choose the perfect room configuration for your comfort.
-              </p>
+            {/* CATEGORIZED ROOM EXPLORER */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-6">
+              {/* Explorer Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 uppercase tracking-wider">
+                      Curated Room Categories
+                    </span>
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs font-semibold text-slate-500">
+                      {rooms.length} Total Rooms
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    Explore Rooms by Type & Category
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Select a room category and your stay dates to view verified real-time room availability and tariffs.
+                  </p>
+                </div>
+              </div>
 
-              <div className="space-y-4">
-                {rooms.map((room) => {
-                  const isSelected = selectedRoomId === room._id;
-                  const price = room.finalPrice || room.pricePerNight || 3500;
-                  const capacity = getRoomCapacity(room);
-                  const thumb = getRoomThumb(room);
-                  const roomAmenities = room.amenities?.length
-                    ? room.amenities
-                    : ["King Bed", "Ensuite Bath", "Free WiFi", "Air Conditioning"];
+              {/* Category Selection Tabs */}
+              <div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory("ALL")}
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-bold shrink-0 transition flex items-center gap-2 ${
+                      selectedCategory === "ALL"
+                        ? "bg-slate-900 text-white shadow-md shadow-slate-900/20"
+                        : "bg-slate-100 hover:bg-slate-200/80 text-slate-700"
+                    }`}
+                  >
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>All Rooms</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        selectedCategory === "ALL"
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      {rooms.length}
+                    </span>
+                  </button>
+
+                  {categoriesPresent.map((catKey) => {
+                    const meta = ROOM_TYPE_META[catKey] || {
+                      label: catKey.replace(/_/g, " "),
+                      icon: Sparkles,
+                    };
+                    const Icon = meta.icon || Sparkles;
+                    const count = rooms.filter((r) => r.roomType === catKey).length;
+                    const isCatActive = selectedCategory === catKey;
+
+                    return (
+                      <button
+                        key={catKey}
+                        type="button"
+                        onClick={() => setSelectedCategory(catKey)}
+                        className={`px-4 py-2.5 rounded-2xl text-xs font-bold shrink-0 transition flex items-center gap-2 ${
+                          isCatActive
+                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                            : "bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600"
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        <span>{meta.label}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                            isCatActive
+                              ? "bg-white/20 text-white"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Stay Dates & Live Availability Inspector Bar */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-indigo-900/50">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 pb-3 border-b border-white/10">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-300">
+                        Stay Dates & Live Availability
+                      </h4>
+                      <p className="text-[11px] text-slate-300">
+                        Inspect real-time room availability for{" "}
+                        <span className="text-white font-bold">
+                          {selectedCategory === "ALL"
+                            ? "all categories"
+                            : ROOM_TYPE_META[selectedCategory]?.label || selectedCategory}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 border border-white/15 text-indigo-200">
+                      {nights} Night{nights > 1 ? "s" : ""} Stay
+                    </span>
+                    {hotelAvailLoading ? (
+                      <span className="text-[11px] text-amber-300 flex items-center gap-1 font-semibold">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Verifying Dates...
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Real-time Inventory Live
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-900">
+                  <div className="bg-white rounded-xl p-2.5 border border-white/20">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      Check-in
+                    </label>
+                    <input
+                      type="date"
+                      value={checkIn}
+                      onChange={(e) => handleCheckInChange(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="w-full text-xs font-bold text-slate-800 bg-transparent border-none p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-xl p-2.5 border border-white/20">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      Check-out
+                    </label>
+                    <input
+                      type="date"
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      min={checkIn}
+                      className="w-full text-xs font-bold text-slate-800 bg-transparent border-none p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-xl p-2.5 border border-white/20">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      Rooms
+                    </label>
+                    <select
+                      value={roomsCount}
+                      onChange={(e) => setRoomsCount(Number(e.target.value))}
+                      className="w-full text-xs font-bold text-slate-800 bg-transparent border-none p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={n}>
+                          {n} Room{n > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-2.5 border border-white/20">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      Guests
+                    </label>
+                    <select
+                      value={guestsCount}
+                      onChange={(e) => setGuestsCount(Number(e.target.value))}
+                      className="w-full text-xs font-bold text-slate-800 bg-transparent border-none p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 6, 8].map((n) => (
+                        <option key={n} value={n}>
+                          {n} Guest{n > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Room Category Sections */}
+              <div className="space-y-8 pt-2">
+                {(selectedCategory === "ALL" ? categoriesPresent : [selectedCategory]).map((catKey) => {
+                  const catRooms = rooms.filter((r) => r.roomType === catKey);
+                  if (catRooms.length === 0) return null;
+
+                  const meta = ROOM_TYPE_META[catKey] || {
+                    label: catKey.replace(/_/g, " "),
+                    title: `${catKey.replace(/_/g, " ")} Rooms`,
+                    tagline: "Comfortable and well-appointed rooms",
+                    desc: "Thoughtfully curated accommodations equipped with quality bedding and modern amenities.",
+                    icon: Sparkles,
+                    badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                    headerBg: "from-indigo-50/80 via-slate-50 to-white",
+                  };
+                  const CatIcon = meta.icon || Sparkles;
 
                   return (
                     <div
-                      key={room._id}
-                      onClick={() => setSelectedRoomId(room._id)}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 transition cursor-pointer flex flex-col md:flex-row gap-4 sm:gap-5 ${
-                        isSelected
-                          ? "border-indigo-600 bg-indigo-50/20 shadow-md ring-1 ring-indigo-500/20"
-                          : "border-slate-200 hover:border-slate-300 bg-white"
-                      }`}
+                      key={catKey}
+                      className="rounded-2xl border border-slate-200/90 overflow-hidden bg-white shadow-sm"
                     >
-                      {/* Left Room Thumbnail */}
-                      <div
-                        className="w-full md:w-48 h-36 sm:h-40 rounded-xl overflow-hidden shrink-0 relative bg-slate-100 group border border-slate-200/80"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openRoomModal(room);
-                        }}
-                      >
-                        <img
-                          src={thumb}
-                          alt={room.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 transition flex items-center justify-center">
-                          <span className="opacity-90 group-hover:opacity-100 transition px-2.5 py-1 rounded-full bg-white/95 text-slate-800 text-[11px] font-bold shadow-md flex items-center gap-1 backdrop-blur-sm">
-                            <Eye className="w-3.5 h-3.5 text-indigo-600" /> Room Photos
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Room Center Info */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-                              {room.roomType || "STANDARD"}
-                            </span>
-                            <span className="text-xs text-slate-600 flex items-center gap-1 font-medium">
-                              <Bed className="w-3.5 h-3.5 text-slate-400" /> {room.beds || "1 King Bed"}
-                            </span>
-                            <span className="text-xs text-slate-400">•</span>
-                            <span className="text-xs text-slate-600 flex items-center gap-1 font-medium">
-                              <Users className="w-3.5 h-3.5 text-slate-400" /> Max {capacity.total} Guests
-                            </span>
+                      {/* Category Header Banner */}
+                      <div className={`p-5 bg-gradient-to-r ${meta.headerBg || "from-indigo-50/60 to-white"} border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-200/80 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                            <CatIcon className="w-5 h-5" />
                           </div>
-
-                          <h4 className="font-bold text-slate-900 text-base sm:text-lg mb-1 leading-snug">
-                            {room.name}
-                          </h4>
-
-                          <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
-                            {room.description || "Thoughtfully curated space with luxury bedding, modern amenities and city tranquility."}
-                          </p>
-
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {roomAmenities.slice(0, 3).map((a, i) => (
-                              <span
-                                key={i}
-                                className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium"
-                              >
-                                {a}
-                              </span>
-                            ))}
-                            {roomAmenities.length > 3 && (
-                              <span className="text-[11px] text-indigo-600 font-semibold px-1">
-                                +{roomAmenities.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openRoomModal(room);
-                            }}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 underline-offset-2 hover:underline"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            View Room Details & Inclusions
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Right Pricing & Select Action */}
-                      <div className="md:w-44 shrink-0 flex md:flex-col justify-between items-end md:items-end border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4">
-                        <div className="text-left md:text-right">
-                          {room.discountPercentage > 0 && room.basePrice > price && (
-                            <div className="flex items-center gap-1 md:justify-end">
-                              <span className="text-xs text-slate-400 line-through">
-                                ₹{room.basePrice.toLocaleString()}
-                              </span>
-                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
-                                {room.discountPercentage}% OFF
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                                {meta.title || meta.label}
+                              </h3>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.badgeBg || "bg-indigo-50 text-indigo-700 border-indigo-200"}`}>
+                                {catRooms.length} Option{catRooms.length > 1 ? "s" : ""}
                               </span>
                             </div>
-                          )}
-                          <div className="flex items-baseline md:justify-end gap-1">
-                            <span className="text-lg sm:text-xl font-black text-slate-900">
-                              ₹{price.toLocaleString()}
-                            </span>
-                            <span className="text-xs text-slate-400">/ night</span>
+                            <p className="text-xs text-slate-600 mt-0.5">
+                              {meta.desc || meta.tagline}
+                            </p>
                           </div>
-                          <span className="text-[10px] text-slate-400 hidden md:block">
-                            + taxes & fees
-                          </span>
                         </div>
 
-                        <div className="mt-2 flex flex-col items-end gap-1.5">
-                          {isSelected && isSoldOut && (
-                            <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
-                              Sold Out for Dates
-                            </span>
-                          )}
-                          {isSelected && !isSoldOut && availableRoomsLeft <= 3 && (
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                              Only {availableRoomsLeft} left!
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRoomId(room._id);
-                            }}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition shadow-sm ${
-                              isSelected
-                                ? isSoldOut
-                                  ? "bg-rose-600 text-white shadow-rose-600/20"
-                                  : "bg-indigo-600 text-white shadow-indigo-600/20"
-                                : "bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200"
-                            }`}
-                          >
-                            {isSelected ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>{isSoldOut ? "Selected (Sold Out)" : "Selected"}</span>
-                              </>
-                            ) : (
-                              <span>Select Room</span>
-                            )}
-                          </button>
+                        <div className="text-left sm:text-right shrink-0">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            Starting Tariffs
+                          </span>
+                          <span className="text-sm font-black text-slate-900">
+                            ₹{Math.min(...catRooms.map((r) => r.finalPrice || r.pricePerNight || 3500)).toLocaleString()}
+                            <span className="text-[11px] font-normal text-slate-500"> / night</span>
+                          </span>
                         </div>
+                      </div>
+
+                      {/* Rooms inside this category */}
+                      <div className="p-4 sm:p-5 space-y-4 bg-slate-50/40">
+                        {catRooms.map((room) => {
+                          const isSelected = selectedRoomId === room._id;
+                          const price = room.finalPrice || room.pricePerNight || 3500;
+                          const capacity = getRoomCapacity(room);
+                          const thumb = getRoomThumb(room);
+                          const roomAmenities = room.amenities?.length
+                            ? room.amenities
+                            : ["King Bed", "Ensuite Bath", "Free WiFi", "Air Conditioning"];
+
+                          const avail = hotelAvailMap[room._id];
+                          const rAvailCount =
+                            avail !== undefined ? avail.availableRooms : (room.totalRooms || 1);
+                          const isRoomSoldOut =
+                            avail !== undefined && (avail.availableRooms === 0 || !avail.available);
+                          const isLowStock =
+                            avail !== undefined && rAvailCount > 0 && rAvailCount <= 3;
+                          const stayTotal = price * nights * roomsCount;
+
+                          return (
+                            <div
+                              key={room._id}
+                              onClick={() => {
+                                if (!isRoomSoldOut) setSelectedRoomId(room._id);
+                              }}
+                              className={`p-4 sm:p-5 rounded-2xl border-2 transition relative flex flex-col md:flex-row gap-4 sm:gap-5 ${
+                                isSelected
+                                  ? "border-indigo-600 bg-indigo-50/30 shadow-md ring-2 ring-indigo-500/20"
+                                  : isRoomSoldOut
+                                  ? "border-slate-200 bg-slate-50/80 opacity-80"
+                                  : "border-slate-200 hover:border-indigo-300 bg-white hover:shadow-sm cursor-pointer"
+                              }`}
+                            >
+                              {/* Left Thumbnail */}
+                              <div
+                                className="w-full md:w-48 h-36 sm:h-40 rounded-xl overflow-hidden shrink-0 relative bg-slate-100 group border border-slate-200/80 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openRoomModal(room);
+                                }}
+                              >
+                                <img
+                                  src={thumb}
+                                  alt={room.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                />
+                                <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 transition flex items-center justify-center">
+                                  <span className="opacity-90 group-hover:opacity-100 transition px-2.5 py-1 rounded-full bg-white/95 text-slate-800 text-[11px] font-bold shadow-md flex items-center gap-1 backdrop-blur-sm">
+                                    <Eye className="w-3.5 h-3.5 text-indigo-600" /> Room Photos
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Center Room Info */}
+                              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                      {room.roomType || "STANDARD"}
+                                    </span>
+                                    <span className="text-xs text-slate-600 flex items-center gap-1 font-medium">
+                                      <Bed className="w-3.5 h-3.5 text-slate-400" /> {room.beds || "1 King Bed"}
+                                    </span>
+                                    <span className="text-xs text-slate-400">•</span>
+                                    <span className="text-xs text-slate-600 flex items-center gap-1 font-medium">
+                                      <Users className="w-3.5 h-3.5 text-slate-400" /> Max {capacity.total} Guests
+                                    </span>
+                                  </div>
+
+                                  <h4 className="font-bold text-slate-900 text-base sm:text-lg mb-1 leading-snug">
+                                    {room.name}
+                                  </h4>
+
+                                  <p className="text-xs text-slate-500 line-clamp-2 mb-2.5 leading-relaxed">
+                                    {room.description ||
+                                      "Thoughtfully curated space with luxury bedding, modern amenities and serene tranquility."}
+                                  </p>
+
+                                  {/* Real-time Inventory Pill */}
+                                  <div className="mb-3">
+                                    {isRoomSoldOut ? (
+                                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1.5">
+                                        <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                        Sold Out for {checkIn} to {checkOut}
+                                      </span>
+                                    ) : isLowStock ? (
+                                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1.5">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                        Only {rAvailCount} Room(s) Left for Selected Dates!
+                                      </span>
+                                    ) : (
+                                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                        {rAvailCount} Rooms Available for Selected Dates
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    {roomAmenities.slice(0, 3).map((a, i) => (
+                                      <span
+                                        key={i}
+                                        className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium"
+                                      >
+                                        {a}
+                                      </span>
+                                    ))}
+                                    {roomAmenities.length > 3 && (
+                                      <span className="text-[11px] text-indigo-600 font-semibold px-1">
+                                        +{roomAmenities.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openRoomModal(room);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 underline-offset-2 hover:underline"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    View Room Details & Inclusions
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Right Pricing & Select Action */}
+                              <div className="md:w-48 shrink-0 flex md:flex-col justify-between items-end md:items-end border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4">
+                                <div className="text-left md:text-right">
+                                  {room.discountPercentage > 0 && room.basePrice > price && (
+                                    <div className="flex items-center gap-1 md:justify-end">
+                                      <span className="text-xs text-slate-400 line-through">
+                                        ₹{room.basePrice.toLocaleString()}
+                                      </span>
+                                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                                        {room.discountPercentage}% OFF
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-baseline md:justify-end gap-1">
+                                    <span className="text-lg sm:text-xl font-black text-slate-900">
+                                      ₹{price.toLocaleString()}
+                                    </span>
+                                    <span className="text-xs text-slate-400">/ night</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    ₹{stayTotal.toLocaleString()} for {nights} night{nights > 1 ? "s" : ""}
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 hidden md:block">
+                                    + taxes & fees
+                                  </span>
+                                </div>
+
+                                <div className="mt-2 flex flex-col items-end gap-1.5 w-full sm:w-auto">
+                                  <button
+                                    type="button"
+                                    disabled={isRoomSoldOut}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (!isRoomSoldOut) setSelectedRoomId(room._id);
+                                    }}
+                                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 transition shadow-sm ${
+                                      isSelected
+                                        ? "bg-indigo-600 text-white shadow-indigo-600/30 ring-2 ring-indigo-400/30"
+                                        : isRoomSoldOut
+                                        ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                                        : "bg-slate-900 hover:bg-indigo-600 text-white hover:shadow-indigo-600/20"
+                                    }`}
+                                  >
+                                    {isSelected ? (
+                                      <>
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>Selected Room</span>
+                                      </>
+                                    ) : isRoomSoldOut ? (
+                                      <span>Sold Out</span>
+                                    ) : (
+                                      <span>Select Room</span>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );

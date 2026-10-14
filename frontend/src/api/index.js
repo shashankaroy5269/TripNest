@@ -21,6 +21,8 @@ export const hotelApi = {
   getRoomsByHotel: (hotelId) => axiosClient.get(`/hotels/${hotelId}/rooms`),
   getRoomById: (id) => axiosClient.get(`/rooms/${id}`),
   checkAvailability: (params) => axiosClient.get("/availability/check", { params }),
+  getHotelRoomsAvailability: (hotelId, params) =>
+    axiosClient.get(`/availability/hotel/${hotelId}`, { params }),
   createRoom: (data) => {
     const hotelId = data.hotelId || data.id;
     if (hotelId) {

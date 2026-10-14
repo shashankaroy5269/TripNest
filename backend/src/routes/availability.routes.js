@@ -51,6 +51,13 @@ router.get(
 );
 
 router.get(
+  "/hotel/:hotelId",
+  asyncHandler(
+    availabilityController.checkHotelAvailability
+  )
+);
+
+router.get(
   "/calculate-price",
   asyncHandler(
     availabilityController.calculatePrice

@@ -233,8 +233,85 @@ class AvailabilityService {
           room.finalPrice
 
       }
-
     };
+  }
+
+
+  // ==================================================
+  // CHECK HOTEL ROOMS AVAILABILITY (ALL ROOMS FOR HOTEL)
+  // ==================================================
+
+  async checkHotelRoomsAvailability({
+    hotelId,
+    checkIn,
+    checkOut,
+    requestedRooms = 1
+  }) {
+    const startDate = this.parseDate(checkIn);
+    const endDate = this.parseDate(checkOut);
+
+    if (!startDate || !endDate || startDate >= endDate) {
+      throw new AppError(
+        "Invalid check-in or check-out date",
+        httpStatus.StatusCodes.BAD_REQUEST
+      );
+    }
+
+    const mongoose = require("mongoose");
+    const { Room } = require("../models/room.model");
+    const { Booking } = require("../models/booking.model");
+
+    const hotelObjectId = mongoose.Types.ObjectId.isValid(hotelId)
+      ? new mongoose.Types.ObjectId(hotelId)
+      : hotelId;
+
+    const rooms = await Room.find({ hotel: hotelObjectId, status: "ACTIVE" }).lean();
+    if (!rooms.length) {
+      return [];
+    }
+
+    const roomIds = rooms.map((r) => r._id);
+
+    const bookedAgg = await Booking.aggregate([
+      {
+        $match: {
+          room: { $in: roomIds },
+          status: { $in: ["PENDING", "CONFIRMED"] },
+          checkIn: { $lt: endDate },
+          checkOut: { $gt: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: "$room",
+          bookedRooms: { $sum: { $ifNull: ["$roomsBooked", 1] } }
+        }
+      }
+    ]);
+
+    const bookedMap = {};
+    for (const b of bookedAgg) {
+      bookedMap[b._id.toString()] = b.bookedRooms;
+    }
+
+    return rooms.map((room) => {
+      const bookedRooms = bookedMap[room._id.toString()] || 0;
+      const availableRooms = Math.max((room.totalRooms || 1) - bookedRooms, 0);
+      const available = availableRooms >= Number(requestedRooms);
+
+      return {
+        roomId: room._id.toString(),
+        name: room.name,
+        roomType: room.roomType,
+        totalRooms: room.totalRooms,
+        bookedRooms,
+        availableRooms,
+        available,
+        basePrice: room.basePrice,
+        discountPercentage: room.discountPercentage || 0,
+        finalPrice: room.finalPrice || room.pricePerNight,
+      };
+    });
   }
 
 
