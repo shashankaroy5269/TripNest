@@ -1,9 +1,13 @@
-﻿# Dependencies
+# Dependencies
+node_modules/
 /node_modules/
 
 # Next.js and build files
+.next/
 /.next/
+dist/
 /dist/
+build/
 /build/
 
 # Environment files

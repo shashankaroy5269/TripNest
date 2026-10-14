@@ -1712,6 +1712,7 @@ export default function HotelsTab({
             </form>
           </div>
         </div>
+      )}
       {/* ================================================== */}
       {/* BULK HOTEL IMPORT MODAL (CSV / EXCEL) */}
       {/* ================================================== */}
