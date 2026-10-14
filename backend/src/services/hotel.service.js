@@ -188,21 +188,35 @@ class HotelService {
       filter.status = queryParams.status;
     }
 
+    const searchConditions = [];
+
     if (queryParams.city) {
-      filter["location.city"] = {
-        $regex: new RegExp(queryParams.city.trim(), "i")
-      };
+      const cityRegex = new RegExp(queryParams.city.trim(), "i");
+      searchConditions.push({
+        $or: [
+          { "location.city": cityRegex },
+          { "location.state": cityRegex }
+        ]
+      });
     }
 
     if (queryParams.search) {
       const regex = new RegExp(queryParams.search.trim(), "i");
-      filter.$or = [
-        { name: regex },
-        { "location.city": regex },
-        { "location.state": regex },
-        { "location.address": regex },
-        { description: regex }
-      ];
+      searchConditions.push({
+        $or: [
+          { name: regex },
+          { "location.city": regex },
+          { "location.state": regex },
+          { "location.address": regex },
+          { description: regex }
+        ]
+      });
+    }
+
+    if (searchConditions.length === 1) {
+      Object.assign(filter, searchConditions[0]);
+    } else if (searchConditions.length > 1) {
+      filter.$and = searchConditions;
     }
 
     if (queryParams.hotelType) {

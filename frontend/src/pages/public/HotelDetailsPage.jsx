@@ -137,6 +137,7 @@ export default function HotelDetailsPage() {
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [hotelAvailMap, setHotelAvailMap] = useState({});
   const [hotelAvailLoading, setHotelAvailLoading] = useState(false);
+  const availLoading = hotelAvailLoading;
 
   const handleCheckInChange = (newVal) => {
     setCheckIn(newVal);
@@ -502,7 +503,7 @@ export default function HotelDetailsPage() {
                       icon: Sparkles,
                     };
                     const Icon = meta.icon || Sparkles;
-                    const count = rooms.filter((r) => r.roomType === catKey).length;
+                    const count = rooms.filter((r) => (r.roomType || "STANDARD") === catKey).length;
                     const isCatActive = selectedCategory === catKey;
 
                     return (
@@ -636,57 +637,73 @@ export default function HotelDetailsPage() {
 
               {/* Room Category Sections */}
               <div className="space-y-8 pt-2">
-                {(selectedCategory === "ALL" ? categoriesPresent : [selectedCategory]).map((catKey) => {
-                  const catRooms = rooms.filter((r) => r.roomType === catKey);
-                  if (catRooms.length === 0) return null;
+                {rooms.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-8 sm:p-12 text-center border border-slate-200 shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                      <Bed className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800 mb-1">
+                      Rooms Currently Being Updated
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      The property management is currently updating room inventories and seasonal tariffs. Please check back shortly or explore other luxury retreats.
+                    </p>
+                  </div>
+                ) : (
+                  (selectedCategory === "ALL" ? categoriesPresent : [selectedCategory]).map((catKey) => {
+                    const catRooms = rooms.filter((r) => (r.roomType || "STANDARD") === catKey);
+                    if (catRooms.length === 0) return null;
 
-                  const meta = ROOM_TYPE_META[catKey] || {
-                    label: catKey.replace(/_/g, " "),
-                    title: `${catKey.replace(/_/g, " ")} Rooms`,
-                    tagline: "Comfortable and well-appointed rooms",
-                    desc: "Thoughtfully curated accommodations equipped with quality bedding and modern amenities.",
-                    icon: Sparkles,
-                    badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
-                    headerBg: "from-indigo-50/80 via-slate-50 to-white",
-                  };
-                  const CatIcon = meta.icon || Sparkles;
+                    const meta = ROOM_TYPE_META[catKey] || {
+                      label: catKey.replace(/_/g, " "),
+                      title: `${catKey.replace(/_/g, " ")} Rooms`,
+                      tagline: "Comfortable and well-appointed rooms",
+                      desc: "Thoughtfully curated accommodations equipped with quality bedding and modern amenities.",
+                      icon: Sparkles,
+                      badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                      headerBg: "from-indigo-50/80 via-slate-50 to-white",
+                    };
+                    const CatIcon = meta.icon || Sparkles;
+                    const minPrice = catRooms.length
+                      ? Math.min(...catRooms.map((r) => Number(r.finalPrice || r.pricePerNight) || 3500))
+                      : 3500;
 
-                  return (
-                    <div
-                      key={catKey}
-                      className="rounded-2xl border border-slate-200/90 overflow-hidden bg-white shadow-sm"
-                    >
-                      {/* Category Header Banner */}
-                      <div className={`p-5 bg-gradient-to-r ${meta.headerBg || "from-indigo-50/60 to-white"} border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-200/80 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
-                            <CatIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                                {meta.title || meta.label}
-                              </h3>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.badgeBg || "bg-indigo-50 text-indigo-700 border-indigo-200"}`}>
-                                {catRooms.length} Option{catRooms.length > 1 ? "s" : ""}
-                              </span>
+                    return (
+                      <div
+                        key={catKey}
+                        className="rounded-2xl border border-slate-200/90 overflow-hidden bg-white shadow-sm"
+                      >
+                        {/* Category Header Banner */}
+                        <div className={`p-5 bg-gradient-to-r ${meta.headerBg || "from-indigo-50/60 to-white"} border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-200/80 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                              <CatIcon className="w-5 h-5" />
                             </div>
-                            <p className="text-xs text-slate-600 mt-0.5">
-                              {meta.desc || meta.tagline}
-                            </p>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                                  {meta.title || meta.label}
+                                </h3>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.badgeBg || "bg-indigo-50 text-indigo-700 border-indigo-200"}`}>
+                                  {catRooms.length} Option{catRooms.length > 1 ? "s" : ""}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-600 mt-0.5">
+                                {meta.desc || meta.tagline}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                              Starting Tariffs
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              ₹{minPrice.toLocaleString()}
+                              <span className="text-[11px] font-normal text-slate-500"> / night</span>
+                            </span>
                           </div>
                         </div>
-
-                        <div className="text-left sm:text-right shrink-0">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                            Starting Tariffs
-                          </span>
-                          <span className="text-sm font-black text-slate-900">
-                            ₹{Math.min(...catRooms.map((r) => r.finalPrice || r.pricePerNight || 3500)).toLocaleString()}
-                            <span className="text-[11px] font-normal text-slate-500"> / night</span>
-                          </span>
-                        </div>
-                      </div>
 
                       {/* Rooms inside this category */}
                       <div className="p-4 sm:p-5 space-y-4 bg-slate-50/40">
@@ -881,8 +898,9 @@ export default function HotelDetailsPage() {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                })
+              )}
+            </div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">

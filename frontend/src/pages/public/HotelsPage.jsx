@@ -4,7 +4,7 @@ import { hotelApi } from "../../api";
 import HotelCard from "../../components/hotels/HotelCard";
 import { Search, Loader2 } from "lucide-react";
 
-const CITIES = ["All", "Goa", "Manali", "Jaipur", "Kerala", "Udaipur"];
+const CITIES = ["All", "Darjeeling", "Himachal", "Manali", "Goa", "Jaipur", "Kerala", "Udaipur"];
 
 const HOTEL_TYPES = [
   { label: "All Types", value: "" },
