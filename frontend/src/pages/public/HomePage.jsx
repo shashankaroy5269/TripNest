@@ -55,6 +55,12 @@ const HERO_DESTINATIONS = [
     cityQuery: "Kerala",
   },
   {
+    name: "Darjeeling",
+    tagline: "QUEEN OF HILLS",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
+    cityQuery: "Darjeeling",
+  },
+  {
     name: "Himachal",
     tagline: "MAJESTIC HILLS",
     image: "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80",
@@ -254,11 +260,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Hero Bottom Strip: 4 Destination Cards + "Plan Your Trip" CTA */}
+        {/* Hero Bottom Strip: 5 Destination Cards + "Plan Your Trip" CTA */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 w-full mt-12 md:mt-16">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            {/* 4 Cards Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 flex-1">
+            {/* 5 Cards Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 flex-1">
               {HERO_DESTINATIONS.map((dest) => (
                 <div
                   key={dest.name}
@@ -337,7 +343,7 @@ export default function HomePage() {
                   <MapPin className="w-3.5 h-3.5 text-[#C59D5F] absolute left-3 top-3" />
                   <input
                     type="text"
-                    placeholder="e.g. Jaipur, Kerala, Manali..."
+                    placeholder="e.g. Jaipur, Darjeeling, Kerala, Manali..."
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/15 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#C59D5F] transition"
